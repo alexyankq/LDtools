@@ -2,8 +2,11 @@ import { TYPES, DEFAULT_RULES, PROFILES, clone, scenario, makeEvent, analyze, va
 
 const $ = id => document.getElementById(id);
 const STORAGE = 'ldtools-shot-v1';
+const SESSION_STORAGE = 'ldtools-shot-sessions-v1';
 let project = { version: 1, events: scenario(), rules: clone(DEFAULT_RULES), profile: clone(PROFILES.balanced), unit: 5 };
 let selected = project.events[0].id, baseline = null, scenarioName = 'standard', profileName = 'balanced', analysis;
+let sessions = [], activeSessionId;
+const sessionRuntime = new Map();
 const COLORS = { engagement: '#99dfbd', arousal: '#d4a071', valence: '#97aef4', fatigue: '#d28fa7' };
 const SERIES = { engagement: '参与意愿', arousal: '情绪唤醒', valence: '情绪效价', fatigue: '疲劳' };
 const EVENT_COLORS = { tutorial: '#7cb2cb', challenge: '#cb9d71', explore: '#82b7a6', story: '#b499d3', goal: '#c7bc78', reward: '#9bdfbc', failure: '#d38991', rest: '#7aa8bc' };
@@ -14,22 +17,108 @@ const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const format = x => Number(x.toFixed(2)).toString();
 const message = (text, error = false) => { $('status').textContent = text; $('status').className = error ? 'error' : ''; };
 try {
+  const workspace = localStorage.getItem(SESSION_STORAGE);
   const saved = localStorage.getItem(STORAGE);
-  if (saved) {
+  if (workspace) {
+    const restored = JSON.parse(workspace);
+    if (restored.version !== 1 || !Array.isArray(restored.sessions) || !restored.sessions.length) throw Error('无效会话数据');
+    const ids = new Set();
+    for (const session of restored.sessions) {
+      if (typeof session.id !== 'string' || ids.has(session.id) || typeof session.title !== 'string' || session.title.length > 80) throw Error('无效会话信息');
+      ids.add(session.id); validateProject(session.project);
+      analyze(session.project.events, session.project.rules, session.project.profile, session.project.unit);
+    }
+    sessions = restored.sessions;
+    activeSessionId = ids.has(restored.activeSessionId) ? restored.activeSessionId : sessions[0].id;
+    project = clone(sessions.find(s => s.id === activeSessionId).project);
+    selected = project.events[0]?.id; scenarioName = 'custom'; profileName = 'custom';
+  } else if (saved) {
     const restored = clone(validateProject(JSON.parse(saved)));
     analyze(restored.events, restored.rules, restored.profile, restored.unit);
     project = restored; selected = project.events[0]?.id; scenarioName = 'custom'; profileName = 'custom';
   }
 } catch { message('本地保存的数据无法读取，已使用示例。你可以导入项目 JSON 恢复。', true); }
+if (!sessions.length) {
+  activeSessionId = crypto.randomUUID();
+  sessions = [{ id: activeSessionId, title: '我的第一次分析', project: clone(project) }];
+}
 
 $('event-type').innerHTML = Object.entries(TYPES).map(([key, name]) => `<option value="${key}">${name}</option>`).join('');
 $('attributes').innerHTML = Object.entries(LABELS).map(([key, label]) => `<label>${label}<input name="${key}" type="number" min="0" max="10" step="any" required></label>`).join('');
 $('legend').innerHTML = Object.entries(SERIES).map(([key, label]) => `<label><input type="checkbox" data-series="${key}" checked><i style="background:${COLORS[key]}"></i>${label}</label>`).join('');
 
 function save() {
-  try { localStorage.setItem(STORAGE, JSON.stringify(project)); $('storage-status').textContent = '项目自动保存在此浏览器'; }
-  catch { $('storage-status').textContent = '浏览器保存不可用，请导出项目保留修改'; }
+  sessions.find(s => s.id === activeSessionId).project = clone(project);
+  try {
+    localStorage.setItem(SESSION_STORAGE, JSON.stringify({ version: 1, activeSessionId, sessions }));
+    $('storage-status').textContent = '分析会话自动保存在此浏览器';
+  } catch { $('storage-status').textContent = '浏览器保存不可用，请分别导出分析保留修改'; }
 }
+function renderSessions() {
+  $('session-title').value = sessions.find(s => s.id === activeSessionId).title;
+  document.title = `${$('session-title').value} · shot`;
+  const list = $('session-list'), signature = JSON.stringify(sessions.map(s => s.id));
+  // Input changes can fire between pointerdown and click. Update existing buttons
+  // rather than replacing their DOM nodes during analysis/settings updates.
+  if (list.dataset.signature !== signature) {
+    list.innerHTML = sessions.map(s => `<button class="session-item" data-session="${esc(s.id)}"><span class="session-icon" aria-hidden="true">◷</span><span class="session-name"></span><span class="session-count"></span></button>`).join('');
+    list.dataset.signature = signature;
+  }
+  [...list.children].forEach((button, index) => {
+    const session = sessions[index], active = session.id === activeSessionId;
+    button.classList.toggle('active', active); button.title = session.title;
+    if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
+    button.querySelector('.session-name').textContent = session.title;
+    button.querySelector('.session-count').textContent = session.project.events.length;
+  });
+}
+function activateSession(id) {
+  if (id === activeSessionId) return;
+  save();
+  sessionRuntime.set(activeSessionId, { selected, baseline, scenarioName, profileName });
+  activeSessionId = id;
+  project = clone(sessions.find(s => s.id === id).project);
+  const runtime = sessionRuntime.get(id);
+  selected = runtime?.selected ?? project.events[0]?.id;
+  baseline = runtime?.baseline ?? null;
+  scenarioName = runtime?.scenarioName ?? 'custom'; profileName = runtime?.profileName ?? 'custom';
+  render(); message('已切换分析会话。');
+}
+function setSidebar(open) {
+  const mobile = window.matchMedia('(max-width: 760px)').matches;
+  document.body.classList.toggle('sidebar-open', mobile && open);
+  document.body.classList.toggle('sidebar-collapsed', !mobile && !open);
+  $('sidebar-backdrop').hidden = !mobile || !open;
+  $('sidebar-toggle').setAttribute('aria-expanded', String(open));
+  $('session-sidebar').inert = !open;
+}
+$('new-session').addEventListener('click', () => {
+  const session = { id: crypto.randomUUID(), title: `新分析 ${sessions.length + 1}`, project: { version: 1, events: [], rules: clone(DEFAULT_RULES), profile: clone(PROFILES.balanced), unit: 5 } };
+  sessions.unshift(session); activateSession(session.id);
+  if (window.matchMedia('(max-width: 760px)').matches) setSidebar(false);
+  $('session-title').focus(); $('session-title').select();
+  message('已新建独立分析。可以先命名，再添加事件或载入示例。');
+});
+$('session-list').addEventListener('click', event => {
+  const button = event.target.closest('[data-session]'); if (!button) return;
+  activateSession(button.dataset.session);
+  if (window.matchMedia('(max-width: 760px)').matches) { setSidebar(false); $('sidebar-toggle').focus(); }
+});
+$('session-title').addEventListener('change', event => {
+  const title = event.target.value.trim() || '未命名分析';
+  sessions.find(s => s.id === activeSessionId).title = title;
+  // Keep sidebar buttons in place while a title blur precedes a session click.
+  const button = $('session-list').querySelector('.session-item.active');
+  button.querySelector('.session-name').textContent = title; button.title = title;
+  event.target.value = title; document.title = `${title} · shot`;
+  save(); message('分析名称已保存。');
+});
+$('session-title').addEventListener('keydown', event => { if (event.key === 'Enter') event.target.blur(); });
+$('sidebar-toggle').addEventListener('click', () => setSidebar($('sidebar-toggle').getAttribute('aria-expanded') !== 'true'));
+$('sidebar-backdrop').addEventListener('click', () => { setSidebar(false); $('sidebar-toggle').focus(); });
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && document.body.classList.contains('sidebar-open')) { setSidebar(false); $('sidebar-toggle').focus(); } });
+window.matchMedia('(max-width: 760px)').addEventListener('change', event => setSidebar(!event.matches));
+setSidebar(!window.matchMedia('(max-width: 760px)').matches);
 function render() {
   analysis = analyze(project.events, project.rules, project.profile, project.unit);
   $('average').textContent = analysis.summary.average.toFixed(2);
@@ -47,7 +136,7 @@ function render() {
   $('scenario').value = scenarioName; $('profile').value = profileName; $('unit').value = project.unit;
   $('rule-name').textContent = project.rules.name;
   $('profile-info').textContent = JSON.stringify(project.profile, null, 2);
-  renderChart(); renderEvents(); renderDiagnostics(); fillEditor(); save();
+  renderChart(); renderEvents(); renderDiagnostics(); fillEditor(); save(); renderSessions();
 }
 function renderChart() {
   const width = 880, height = 285, left = 40, top = 15, bottom = 245, right = 860;

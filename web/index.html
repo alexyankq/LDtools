@@ -2,7 +2,16 @@
 <html lang="zh-CN">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>shot · 关卡体验实验室</title><link rel="stylesheet" href="/style.css"></head>
 <body>
-  <header><a class="brand" href="/">shot<span>关卡体验实验室</span></a><div class="header-right"><span class="tag">实验原型 · v0.1</span><button id="export-project">导出项目</button><label class="button">导入项目<input type="file" id="import-project" accept=".json,application/json" hidden></label></div></header>
+  <nav id="session-sidebar" class="session-sidebar" aria-label="分析会话">
+    <div class="sidebar-brand"><span>shot</span><span class="sidebar-subtitle">关卡体验实验室</span></div>
+    <button id="new-session" class="new-session">＋ 新建分析</button>
+    <p class="session-list-label">我的分析</p>
+    <div id="session-list" class="session-list"></div>
+    <div class="sidebar-footer">每次分析，都是一个独立会话。<br>会话自动保存在当前浏览器。</div>
+  </nav>
+  <button id="sidebar-backdrop" class="sidebar-backdrop" aria-label="关闭会话侧栏" hidden></button>
+  <div class="app-content">
+  <header><div class="session-header"><button id="sidebar-toggle" class="sidebar-toggle" aria-label="切换会话侧栏" aria-controls="session-sidebar" aria-expanded="true">☰</button><input id="session-title" aria-label="当前分析名称" maxlength="80" placeholder="未命名分析"></div><div class="header-right"><span class="tag">实验原型 · v0.1</span><button id="export-project">导出当前分析</button><label class="button">导入到当前分析<input type="file" id="import-project" accept=".json,application/json" hidden></label></div></header>
   <main>
     <div class="intro"><div><p class="eyebrow">LEVEL EXPERIENCE / DIAGNOSTICS</p><h1>看见节奏，找到改变的起点。</h1><p>将事件转化为体验曲线，用可追溯的诊断检验关卡设计假设。</p></div><div class="notice">所有曲线均为实验模型预测。<br>示例事件为假想流程，非玩家实测。</div></div>
     <section class="controls panel" aria-label="分析设置">
@@ -43,6 +52,7 @@
     </div>
     <footer>shot / LDtools <span>记录事件 → 模拟状态 → 追溯诊断 → 验证设计假设</span><span id="storage-status">项目自动保存在此浏览器</span></footer>
   </main>
+  </div>
   <script type="module" src="/app.js"></script>
 </body>
 </html>

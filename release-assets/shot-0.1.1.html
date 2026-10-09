@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>shot · 关卡体验实验室</title><style>:root{font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#dce2e8;background:#0d1218;color-scheme:dark;--muted:#8693a0;--line:#27323d;--accent:#9ae0bf;--panel:#151d26}
+*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button,.button{border:1px solid #344451;background:#1b2732;color:#dde6ed;padding:9px 13px;border-radius:7px;cursor:pointer;font-size:13px;text-align:center;display:inline-block;transition:background .15s}button:hover,.button:hover{background:#293c4a}button:focus-visible,.button:focus-within,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}button.primary{background:var(--accent);color:#102b20;border-color:var(--accent);font-weight:650}button:disabled{opacity:.45;cursor:default}input,select{width:100%;padding:10px 11px;border:1px solid #34424e;border-radius:6px;background:#101820;color:#e2e8ed;min-width:0}input:focus,select:focus{outline:1px solid var(--accent)}label{display:block;font-size:12px;color:#a8b6c3}label input,label select{margin-top:7px}header{padding:22px 4%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);gap:20px}.brand{text-decoration:none;color:var(--accent);font-size:32px;font-weight:750;letter-spacing:-1px}.brand span{font-size:12px;letter-spacing:1px;color:#a4b0ba;margin-left:18px;font-weight:400}.header-right{display:flex;align-items:center;gap:10px}.tag{display:inline-block;padding:6px 9px;border-radius:5px;background:#21352e;color:#a4d6bd;font-size:11px;letter-spacing:.3px}main{max-width:1536px;margin:auto;padding:36px 4%}.intro{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:30px}.eyebrow{font-size:10px;letter-spacing:1.8px;color:var(--accent);margin:0 0 10px}h1{font-size:30px;font-weight:600;letter-spacing:-.5px;margin:0 0 12px}h2{font-size:17px;font-weight:550;margin:0}.intro p:not(.eyebrow){color:var(--muted);font-size:14px;margin:0;line-height:1.8}.notice{color:#9ba8b2;font-size:12px;line-height:1.9;border-left:2px solid #536a5e;padding-left:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px}.controls{display:flex;align-items:end;gap:20px}.controls>label:nth-child(1){flex:1.4}.controls>label:nth-child(2){flex:1}.controls>label:nth-child(3){width:100px}.control-actions{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:2px}#status{font-size:12px;color:var(--accent);min-height:18px;margin:10px 2px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}.stat span,.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:34px;font-weight:500;font-variant-numeric:tabular-nums;margin:13px 0 9px}.stat small{font-size:11px}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px}.analysis-column,aside{display:flex;flex-direction:column;gap:22px;min-width:0}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}.caption{font-size:11px;color:var(--muted);line-height:1.8;margin:10px 0}.legend{display:flex;gap:18px;margin-bottom:14px;flex-wrap:wrap}.legend label{display:flex;align-items:center;gap:6px;cursor:pointer}.legend input{width:auto;margin:0;accent-color:var(--accent)}.legend i{width:16px;height:3px;display:inline-block}.chart-svg{display:block;width:100%;height:auto;min-height:180px}.chart-panel{overflow:hidden}.chart-svg text{font-family:inherit;fill:#8999a6;font-size:11px}.chart-svg .grid{stroke:#2a3540;stroke-width:1}.timeline-row{display:flex;gap:12px;align-items:center;margin:8px 0}.timeline-name{width:108px;flex-shrink:0;font-size:11px;color:#a2afb9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.timeline-track{position:relative;flex:1;height:23px;background:#101821;border-radius:3px}.timeline-bar{position:absolute;top:2px;bottom:2px;padding:0;border:0;border-radius:3px;min-width:5px;opacity:.8}.timeline-bar:hover,.timeline-bar.selected{opacity:1;outline:1px solid white}.timeline-scale{display:flex;justify-content:space-between;margin-left:120px;color:var(--muted);font-size:10px;margin-bottom:10px}.table-wrap{overflow-x:auto;margin-top:22px}table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}th{color:var(--muted);font-weight:400;border-bottom:1px solid var(--line);padding:10px 8px;white-space:nowrap}td{border-bottom:1px solid #222e3a;padding:12px 8px}td:first-child{min-width:140px}td button{padding:4px 7px;font-size:11px;margin:2px}.selected-row{background:#1d302b}.event-name{background:none;border:0;padding:0;color:#dce2e8;text-align:left}form>label{margin-bottom:13px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px}.full{width:100%;margin-top:12px}.error{color:#f1a29f;font-size:12px;line-height:1.7}.button-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}details{border-top:1px solid var(--line);margin-top:18px;padding-top:15px}summary{cursor:pointer;color:#a8b8c4;font-size:12px}pre{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted);font-size:11px;line-height:1.7}.diagnostic{border-left:2px solid #dfaa72;padding:4px 0 4px 14px;margin:18px 0}.diagnostic h3{font-size:13px;margin:0 0 9px;font-weight:550}.diagnostic p{color:#9eacb7;font-size:12px;line-height:1.8;margin:5px 0}.diagnostic button{font-size:11px;padding:3px 8px;margin-left:8px}.empty{padding:20px;color:var(--muted);font-size:13px;text-align:center}.positive{color:var(--accent)!important}.negative{color:#f1a29f!important}footer{border-top:1px solid var(--line);margin-top:35px;padding:22px 0;display:flex;gap:24px;flex-wrap:wrap;color:#71818f;font-size:11px}footer span:last-child{margin-left:auto}[hidden]{display:none!important}
+@media(min-width:1400px){.workspace{grid-template-columns:minmax(0,1fr) 350px}}
+@media(max-width:1050px){.controls{flex-wrap:wrap}.control-actions{width:100%}.workspace{grid-template-columns:minmax(0,1fr) 290px}header .tag{display:none}.notice{display:none}h1{font-size:26px}.panel{padding:18px}}
+@media(max-width:760px){header{padding:18px 5%;flex-wrap:wrap}.brand span{margin-left:12px}.header-right{width:100%}main{padding:25px 5%}.workspace{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr);gap:10px}.controls{gap:12px}.controls>label:nth-child(1){flex:auto;width:100%}.controls>label:nth-child(2){flex:1}.stat strong{font-size:28px}.section-head{align-items:start}.section-head>.caption{display:none}.legend{gap:12px}.intro{margin-bottom:20px}h1{font-size:23px}.timeline-name{width:90px}.timeline-scale{margin-left:102px}footer span:last-child{margin-left:0}}
+/* Analysis sessions */
+.session-sidebar{position:fixed;inset:0 auto 0 0;width:246px;background:#0a0f14;border-right:1px solid #24303a;padding:26px 14px 18px;display:flex;flex-direction:column;z-index:30;transition:transform .18s}
+.sidebar-brand{padding:0 12px 25px;display:flex;flex-direction:column;gap:5px}.sidebar-brand>span:first-child{font-size:30px;font-weight:750;letter-spacing:-1px;color:var(--accent)}.sidebar-subtitle{font-size:11px;color:var(--muted)}.new-session{text-align:left;background:#17232b;padding:12px 15px;font-size:14px;border-color:#304138}.session-list-label{font-size:11px;color:#70818e;margin:26px 12px 10px}.session-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px}.session-item{display:flex;align-items:center;gap:9px;text-align:left;padding:12px 10px;border-color:transparent;background:transparent;color:#9fadb8;flex-shrink:0}.session-item:hover{background:#172129}.session-item.active{background:#23332c;color:#c9ebd9}.session-name{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:13px}.session-icon{font-size:17px}.session-count{font-size:10px;color:#718a7d}.sidebar-footer{font-size:11px;line-height:1.8;color:#647782;border-top:1px solid #1e2b33;padding:16px 10px 0;margin-top:18px}.app-content{margin-left:246px;min-width:0}.session-header{display:flex;align-items:center;gap:12px;min-width:0;flex:1}.sidebar-toggle{font-size:19px;padding:5px 10px;background:none;border-color:transparent}.session-header #session-title{border-color:transparent;background:transparent;font-size:15px;max-width:300px;padding:7px 5px;margin:0}.session-header #session-title:hover{border-color:var(--line)}.sidebar-collapsed .session-sidebar{transform:translateX(-100%)}.sidebar-collapsed .app-content{margin-left:0}.sidebar-backdrop{position:fixed;inset:0;border:0;border-radius:0;background:#0009;z-index:25;padding:0}.sidebar-backdrop:hover{background:#0009}
+@media(max-width:1200px){.app-content .workspace{grid-template-columns:1fr}.app-content aside{display:grid;grid-template-columns:1fr 1fr;align-items:start}.app-content .header-right .tag{display:none}.app-content .controls{flex-wrap:wrap}.app-content .control-actions{width:100%}.app-content h1{font-size:24px}}
+@media(max-width:760px){.session-sidebar{transform:translateX(-100%);width:260px}.app-content,.sidebar-collapsed .app-content{margin-left:0}.sidebar-open .session-sidebar{transform:translateX(0)}.app-content aside{display:flex}.app-content header{gap:10px}.session-header #session-title{max-width:260px}.app-content h1{font-size:22px}}
+</style></head>
+<body>
+  <nav id="session-sidebar" class="session-sidebar" aria-label="分析会话">
+    <div class="sidebar-brand"><span>shot</span><span class="sidebar-subtitle">关卡体验实验室</span></div>
+    <button id="new-session" class="new-session">＋ 新建分析</button>
+    <p class="session-list-label">我的分析</p>
+    <div id="session-list" class="session-list"></div>
+    <div class="sidebar-footer">每次分析，都是一个独立会话。<br>会话自动保存在当前浏览器。</div>
+  </nav>
+  <button id="sidebar-backdrop" class="sidebar-backdrop" aria-label="关闭会话侧栏" hidden></button>
+  <div class="app-content">
+  <header><div class="session-header"><button id="sidebar-toggle" class="sidebar-toggle" aria-label="切换会话侧栏" aria-controls="session-sidebar" aria-expanded="true">☰</button><input id="session-title" aria-label="当前分析名称" maxlength="80" placeholder="未命名分析"></div><div class="header-right"><span class="tag">实验原型 · v0.1.1</span><button id="export-project">导出当前分析</button><label class="button">导入到当前分析<input type="file" id="import-project" accept=".json,application/json" hidden></label></div></header>
+  <main>
+    <div class="intro"><div><p class="eyebrow">LEVEL EXPERIENCE / DIAGNOSTICS</p><h1>看见节奏，找到改变的起点。</h1><p>将事件转化为体验曲线，用可追溯的诊断检验关卡设计假设。</p></div><div class="notice">所有曲线均为实验模型预测。<br>示例事件为假想流程，非玩家实测。</div></div>
+    <section class="controls panel" aria-label="分析设置">
+      <label>示例流程<select id="scenario"><option value="standard">Portal 2 · 标准流程</option><option value="repetition">Portal 2 · 重复流程</option><option value="wrong-order">Portal 2 · 错序流程</option><option value="custom" disabled>自定义流程</option></select></label>
+      <label>玩家画像<select id="profile"><option value="balanced">综合型玩家</option><option value="casual">休闲型玩家</option><option value="expert">挑战型玩家</option><option value="custom" disabled>自定义画像</option></select></label>
+      <label>分析时元 / 秒<input id="unit" type="number" min="1" max="300" step="any" value="5"></label>
+      <div class="control-actions"><button id="baseline">设为对比基线</button><button id="clear-baseline" hidden>清除基线</button><button id="add-event" class="primary">＋ 添加事件</button></div>
+    </section>
+    <p id="status" role="status" aria-live="polite"></p>
+    <section class="stats" aria-label="分析摘要">
+      <div class="panel stat"><span>平均参与意愿</span><strong id="average">—</strong><small id="delta">按时长加权 · 0–10</small></div>
+      <div class="panel stat"><span>最低参与意愿</span><strong id="minimum">—</strong><small>定位局部体验低谷</small></div>
+      <div class="panel stat"><span>流程长度</span><strong id="duration">—</strong><small id="event-count">—</small></div>
+      <div class="panel stat"><span>诊断候选</span><strong id="diagnosis-count">—</strong><small>结合设计意图与试玩验证</small></div>
+    </section>
+    <div class="workspace">
+      <div class="analysis-column">
+        <section class="panel chart-panel"><div class="section-head"><div><p class="eyebrow">EXPERIENCE CURVES</p><h2>体验随时间的变化</h2></div><span id="baseline-label" class="tag" hidden>虚线：对比基线</span></div><div id="legend" class="legend"></div><div id="chart"></div><p class="caption">参与意愿、唤醒、效价、疲劳：0–10。横轴使用真实秒数；瞬时变化在粗采样下可能被平滑。</p></section>
+        <section class="panel"><div class="section-head"><div><p class="eyebrow">EVENT TIMELINE</p><h2>事件时间轴</h2></div><span class="caption">点击事件编辑 · 区间可重叠</span></div><div id="timeline"></div><div class="table-wrap"><table><thead><tr><th>事件</th><th>类型</th><th>开始 / 秒</th><th>持续 / 秒</th><th>操作</th></tr></thead><tbody id="events"></tbody></table></div></section>
+        <section class="panel"><div class="section-head"><div><p class="eyebrow">EVIDENCE & HYPOTHESES</p><h2>诊断与修改假设</h2></div></div><div id="diagnostics"></div></section>
+      </div>
+      <aside>
+        <section class="panel editor"><div class="section-head"><div><p class="eyebrow">EVENT INSPECTOR</p><h2 id="editor-title">编辑事件</h2></div></div>
+          <form id="event-form">
+            <label>事件名称<input name="name" required maxlength="200"></label>
+            <label>事件类型<select name="type" id="event-type"></select></label>
+            <div class="form-grid"><label>开始 / 秒<input name="start" type="number" min="0" max="7200" step="any" required></label><label>持续 / 秒<input name="duration" type="number" min="0" max="7200" step="any" required></label></div>
+            <p class="caption">持续为 0 时是瞬时事件。原型支持最长 2 小时、最多 300 个事件。</p>
+            <div class="form-grid" id="attributes"></div>
+            <label>教学机制<input name="mechanic" maxlength="200" placeholder="例如 portal；留空表示不教学"></label>
+            <label>所需前置机制<input name="requires" maxlength="200" placeholder="例如 portal；留空表示无前置要求"></label>
+            <button class="primary full" type="submit">保存事件并重新分析</button>
+            <p id="form-error" class="error" role="alert"></p>
+          </form>
+        </section>
+        <section class="panel config"><div class="section-head"><div><p class="eyebrow">RULES & PLAYER</p><h2>模型配置</h2></div></div><p id="rule-name"></p><p class="caption">规则与玩家画像独立保存。导入 JSON 后重新计算；不会执行文件中的代码。</p><div class="button-grid"><label class="button">导入规则<input id="import-rules" type="file" accept=".json,application/json" hidden></label><button id="export-rules">导出规则</button><label class="button">导入画像<input id="import-profile" type="file" accept=".json,application/json" hidden></label><button id="export-profile">导出画像</button></div><button id="default-rules" class="full">恢复默认规则</button><details><summary>当前画像参数</summary><pre id="profile-info"></pre></details><details><summary>模型如何计算？</summary><p class="caption">事件影响支持瞬时、持续、累积、延迟和恢复五类函数。内部按 1 秒及事件边界更新状态，再按分析时元采样。规则中的参数尚未通过玩家实测校准。</p></details></section>
+      </aside>
+    </div>
+    <footer>shot / LDtools <span>记录事件 → 模拟状态 → 追溯诊断 → 验证设计假设</span><span id="storage-status">项目自动保存在此浏览器</span></footer>
+  </main>
+  </div>
+  <script type="module">// Experimental model: declarative rules, fixed one-second integration.
+const TYPES = { tutorial: '机制教学', challenge: '挑战 / 解谜', explore: '探索', story: '剧情', goal: '目标更新', reward: '奖励', failure: '失败', rest: '休整' };
+const STATES = ['anticipation', 'stress', 'fatigue', 'competence', 'frustration', 'boredom'];
+const clone = x => JSON.parse(JSON.stringify(x));
+const clip = (x, max = 10) => Math.max(0, Math.min(max, x));
+const effect = (state, mode, coefficient, attribute, extra = {}) => ({ state, mode, coefficient, ...(attribute ? { attribute } : {}), ...extra });
+const DEFAULT_RULES = {
+  version: 1, name: '综合体验 · 实验规则 v1',
+  decay: { anticipation: 0.001, stress: 0.025, fatigue: 0.0004, competence: 0, frustration: 0.003, boredom: 0.003 },
+  weights: { base: 4, anticipation: 0.28, competence: 0.22, stress: 0.08, fatigue: -0.28, frustration: -0.32, boredom: -0.4 },
+  thresholds: { knowledge: 0.5, repetition: 3, fatigue: 6, mismatch: 3, boredom: 4, rewardGap: 120 },
+  mappings: {
+    tutorial: [effect('anticipation', 'instant', 0.22, 'novelty'), effect('competence', 'accumulate', 0.003, 'feedback')],
+    challenge: [effect('stress', 'sustain', 1, 'intensity'), effect('fatigue', 'accumulate', 0.003, 'intensity'), effect('competence', 'accumulate', 0.002, 'feedback')],
+    explore: [effect('anticipation', 'instant', 0.25, 'novelty'), effect('fatigue', 'accumulate', 0.001, 'intensity')],
+    story: [effect('anticipation', 'sustain', 0.7, 'novelty'), effect('competence', 'delayed', 0.08, 'feedback', { delay: 10 })],
+    goal: [effect('anticipation', 'instant', 0.4, 'value')],
+    reward: [effect('competence', 'instant', 0.16, 'value'), effect('anticipation', 'instant', 0.16, 'value'), effect('frustration', 'instant', -0.2, 'value')],
+    failure: [effect('frustration', 'instant', 0.45, 'cost'), effect('competence', 'instant', 0.12, 'feedback')],
+    rest: [effect('fatigue', 'recover', 0.008), effect('stress', 'recover', 0.05), effect('frustration', 'recover', 0.01)]
+  },
+  dynamics: { knowledgeRate: 0.008, knowledgePenalty: 0.01, mismatchPenalty: 0.005, repetitionFatigue: 0.003, idleGrace: 45, boredomRate: 0.018, activeBoredomRecovery: 0.025 }
+};
+const PROFILES = {
+  balanced: { name: '综合型玩家', skill: 5, fatigueSensitivity: 1, frustrationSensitivity: 1, noveltyPreference: 1, learningRate: 1 },
+  casual: { name: '休闲型玩家', skill: 3, fatigueSensitivity: 1.3, frustrationSensitivity: 1.4, noveltyPreference: 1, learningRate: 0.8 },
+  expert: { name: '挑战型玩家', skill: 8, fatigueSensitivity: 0.8, frustrationSensitivity: 0.7, noveltyPreference: 0.8, learningRate: 1.2 }
+};
+function makeEvent(extra = {}) {
+  return { id: 'event', name: '新事件', type: 'challenge', start: 0, duration: 60, intensity: 5, difficulty: 5, novelty: 5, feedback: 7, value: 5, cost: 3, mechanic: '', requires: '', ...extra };
+}
+function scenario(kind = 'standard') {
+  const definitions = [
+    { name: '传送门机制引入', type: 'tutorial', duration: 120, intensity: 2, novelty: 9, mechanic: 'portal' },
+    { name: '首次应用', duration: 180, intensity: 4, difficulty: 4, novelty: 7, requires: 'portal' },
+    { name: '组合解谜', duration: 240, intensity: 6, difficulty: 6, novelty: 5, requires: 'portal' },
+    { name: '复杂解谜', duration: 240, intensity: 8, difficulty: 7, novelty: 3, requires: 'portal' },
+    { name: '场景过渡与休整', type: 'rest', duration: 120, intensity: 1, novelty: 4 },
+    { name: '新一轮挑战', duration: 180, intensity: 6, difficulty: 6, novelty: 8, requires: 'portal' },
+    { name: '完成实验奖励', type: 'reward', duration: 0, value: 8 }
+  ];
+  if (kind === 'repetition') definitions[4] = { name: '重复组合解谜', duration: 120, intensity: 8, difficulty: 7, novelty: 1, requires: 'portal' };
+  if (kind === 'wrong-order') [definitions[0], definitions[3]] = [definitions[3], definitions[0]];
+  let start = 0;
+  return definitions.map((e, i) => { const result = makeEvent({ id: `event-${i + 1}`, start, ...e }); start += e.duration; return result; });
+}
+const object = (x, label) => { if (!x || typeof x !== 'object' || Array.isArray(x)) throw Error(`${label}必须是对象`); };
+const number = (x, min, max, label) => { if (typeof x !== 'number' || !Number.isFinite(x) || x < min || x > max) throw Error(`${label}必须是 ${min}–${max} 的数字`); };
+const text = (x, label, required = false) => { if (typeof x !== 'string' || x.length > 200 || (required && !x.trim())) throw Error(`${label}必须是${required ? '非空' : ''}字符串（最多 200 字）`); };
+function validateProfile(profile) {
+  object(profile, '玩家画像'); text(profile.name, '画像名称', true); number(profile.skill, 0, 10, '玩家能力');
+  for (const key of ['fatigueSensitivity', 'frustrationSensitivity', 'noveltyPreference', 'learningRate']) number(profile[key], 0.1, 3, key);
+  return profile;
+}
+function validateEvents(events) {
+  if (!Array.isArray(events) || events.length > 300) throw Error('事件必须是数组，最多 300 个');
+  const ids = new Set();
+  for (const e of events) {
+    object(e, '事件'); text(e.id, '事件 ID', true); text(e.name, '事件名称', true);
+    if (ids.has(e.id)) throw Error('事件 ID 不能重复'); ids.add(e.id);
+    if (!Object.hasOwn(TYPES, e.type)) throw Error('未知事件类型');
+    number(e.start, 0, 7200, '开始时间'); number(e.duration, 0, 7200, '持续时间');
+    if (e.start + e.duration > 7200) throw Error('原型支持最长 7200 秒的时间轴');
+    for (const k of ['intensity', 'difficulty', 'novelty', 'feedback', 'value', 'cost']) number(e[k], 0, 10, k);
+    text(e.mechanic, '教学机制'); text(e.requires, '前置机制');
+  }
+  return events;
+}
+function validateRules(rules) {
+  object(rules, '规则'); if (rules.version !== 1) throw Error('只支持 version: 1 的规则包'); text(rules.name, '规则名称', true);
+  for (const k of ['decay', 'weights', 'thresholds', 'mappings', 'dynamics']) object(rules[k], k);
+  for (const key of STATES) number(rules.decay[key], 0, 1, `decay.${key}`);
+  for (const key of ['base', ...STATES]) number(rules.weights[key], -10, 10, `weights.${key}`);
+  for (const [k, min, max] of [['knowledge', 0, 1], ['repetition', 1, 300], ['fatigue', 0, 10], ['mismatch', 0, 10], ['boredom', 0, 10], ['rewardGap', 0, 7200]]) number(rules.thresholds[k], min, max, k);
+  for (const key of Object.keys(DEFAULT_RULES.dynamics)) number(rules.dynamics[key], 0, key === 'idleGrace' ? 7200 : 1, `dynamics.${key}`);
+  for (const type of Object.keys(TYPES)) {
+    const effects = rules.mappings[type];
+    if (!Array.isArray(effects) || effects.length > 30) throw Error(`${type} 的映射必须是数组，最多 30 项`);
+    for (const fx of effects) {
+      object(fx, '影响函数');
+      if (!STATES.includes(fx.state)) throw Error('未知状态');
+      if (!['instant', 'sustain', 'accumulate', 'delayed', 'recover'].includes(fx.mode)) throw Error('未知时间影响函数');
+      number(fx.coefficient, -10, 10, '影响系数');
+      if (fx.mode === 'recover' && fx.coefficient < 0) throw Error('恢复系数不能为负');
+      if (fx.attribute !== undefined && !['intensity', 'difficulty', 'novelty', 'feedback', 'value', 'cost'].includes(fx.attribute)) throw Error('未知事件属性');
+      if (fx.mode === 'delayed') number(fx.delay, 0, 7200, '延迟秒数');
+    }
+  }
+  return rules;
+}
+function validateProject(p) {
+  object(p, '项目'); if (p.version !== 1) throw Error('只支持 version: 1 的项目');
+  validateEvents(p.events); validateRules(p.rules); validateProfile(p.profile); number(p.unit, 1, 300, '分析时元');
+  return p;
+}
+function analyze(events, rules = DEFAULT_RULES, profile = PROFILES.balanced, unit = 5) {
+  validateProject({ version: 1, events, rules, profile, unit });
+  const ordered = events.map((e, i) => ({ ...e, order: i })).sort((a, b) => a.start - b.start || a.order - b.order);
+  const delayedEnd = Math.max(0, ...ordered.flatMap(e => rules.mappings[e.type].filter(f => f.mode === 'delayed').map(f => e.start + f.delay)));
+  const duration = Math.max(0, delayedEnd, ...ordered.map(e => e.start + e.duration));
+  if (duration > 7200) throw Error('含延迟影响的时间轴不能超过 7200 秒');
+  const state = { anticipation: 5, stress: 0, fatigue: 0, competence: profile.skill, frustration: 0, boredom: 0 };
+  const knowledge = Object.create(null), diagnostics = [], fired = new Set(), counts = new Map(), samples = [], all = [];
+  let idle = 0, sinceReward = 0, investment = 0;
+  const report = (rule, event, t, evidence, suggestion) => {
+    const key = `${rule}/${event?.id || ''}`;
+    if (fired.has(key)) return; fired.add(key);
+    diagnostics.push({ rule, eventId: event?.id || null, eventName: event?.name || '空窗期', time: t, evidence, suggestion });
+  };
+  const result = t => {
+    const engagement = clip(rules.weights.base + STATES.reduce((sum, k) => sum + state[k] * rules.weights[k] * (k === 'fatigue' ? profile.fatigueSensitivity : k === 'frustration' ? profile.frustrationSensitivity : k === 'anticipation' ? profile.noveltyPreference : 1), 0));
+    return { time: t, ...state, knowledge: { ...knowledge }, engagement, arousal: clip(state.stress * 0.75 + state.anticipation * 0.25), valence: clip(5 + state.competence * 0.25 + state.anticipation * 0.2 - state.frustration * 0.5 - state.boredom * 0.3) };
+  };
+  // Split at event/delay boundaries to preserve fractional timestamps. Output sampling
+  // never controls state evolution; partial final intervals are weighted exactly.
+  const boundaries = new Set([0, duration]);
+  for (let t = 1; t < duration; t++) boundaries.add(t);
+  for (const e of ordered) {
+    boundaries.add(e.start); boundaries.add(e.start + e.duration);
+    for (const fx of rules.mappings[e.type]) if (fx.mode === 'delayed') boundaries.add(e.start + fx.delay);
+  }
+  const times = [...boundaries].sort((a, b) => a - b);
+  let area = 0, minimum = Infinity;
+  for (let index = 0; index < times.length; index++) {
+    const t = times[index], dt = (times[index + 1] ?? t) - t;
+    for (const e of ordered.filter(e => e.start === t)) {
+      if (e.requires && (knowledge[e.requires] || 0) < rules.thresholds.knowledge) report('knowledge-gap', e, t, `机制 ${e.requires} 知识 ${(knowledge[e.requires] || 0).toFixed(2)} < ${rules.thresholds.knowledge}`, '提前安排机制教学或无压力练习，再通过试玩验证。');
+      if (e.type === 'challenge') {
+        const key = e.requires || 'general'; counts.set(key, (counts.get(key) || 0) + 1);
+        if (counts.get(key) >= rules.thresholds.repetition && e.novelty <= 3) report('repetition', e, t, `同机制挑战累计 ${counts.get(key)} 次，新颖度 ${e.novelty} ≤ 3`, '替换重复机制、增加目标变化，或插入休整进行对比。');
+        const gap = e.difficulty - state.competence;
+        if (gap > rules.thresholds.mismatch) report('challenge-mismatch', e, t, `难度 ${e.difficulty} 与能力感 ${state.competence.toFixed(1)} 相差 ${gap.toFixed(1)}`, '调整挑战或加强教学；结合目标玩家和设计意图检查。');
+      }
+      if (e.type === 'reward') {
+        if (investment > 0 && sinceReward > rules.thresholds.rewardGap && e.value < 4) report('reward-gap', e, t, `连续投入 ${sinceReward.toFixed(0)} 秒后奖励价值 ${e.value} < 4`, '检查奖励价值、反馈与发放时机，比较调整后的流程。');
+        investment = 0; sinceReward = 0;
+      }
+    }
+    for (const e of ordered) for (const fx of rules.mappings[e.type]) {
+      const at = e.start + (fx.mode === 'delayed' ? fx.delay : 0);
+      if (['instant', 'delayed'].includes(fx.mode) && t === at) {
+        let amount = fx.coefficient * (fx.attribute ? e[fx.attribute] : 1);
+        if (e.type === 'failure' && fx.state === 'frustration') amount *= 1 - e.feedback / 15;
+        state[fx.state] = clip(state[fx.state] + amount);
+      }
+    }
+    const active = ordered.filter(e => e.start <= t && t < e.start + e.duration);
+    all.push(result(t)); minimum = Math.min(minimum, all.at(-1).engagement);
+    if (!dt) break;
+    for (const key of STATES) state[key] *= Math.exp(-rules.decay[key] * dt);
+    const sustained = Object.create(null);
+    for (const e of active) {
+      for (const fx of rules.mappings[e.type]) {
+        const amount = fx.coefficient * (fx.attribute ? e[fx.attribute] : 1);
+        if (fx.mode === 'sustain') sustained[fx.state] = (sustained[fx.state] || 0) + amount;
+        if (fx.mode === 'accumulate') state[fx.state] += amount * dt;
+        if (fx.mode === 'recover') state[fx.state] *= Math.exp(-amount * dt);
+      }
+      if (e.mechanic) knowledge[e.mechanic] = clip((knowledge[e.mechanic] || 0) + rules.dynamics.knowledgeRate * e.feedback / 10 * profile.learningRate * dt, 1);
+      if (e.type === 'challenge') {
+        investment += e.intensity * dt;
+        if (e.requires && (knowledge[e.requires] || 0) < rules.thresholds.knowledge) state.frustration += rules.dynamics.knowledgePenalty * e.difficulty * dt;
+        state.frustration += Math.max(0, e.difficulty - state.competence - 1) * rules.dynamics.mismatchPenalty * dt;
+        state.fatigue += Math.max(0, (counts.get(e.requires || 'general') || 0) - 1) * (1 - e.novelty / 10) * rules.dynamics.repetitionFatigue * dt;
+      }
+    }
+    for (const [key, target] of Object.entries(sustained)) state[key] += (clip(target) - state[key]) * (1 - Math.exp(-0.08 * dt));
+    sinceReward += dt;
+    if (!active.length || active.every(e => e.type === 'rest')) {
+      const previous = idle; idle += dt;
+      state.boredom += Math.max(0, idle - Math.max(previous, rules.dynamics.idleGrace)) * rules.dynamics.boredomRate;
+    } else { idle = 0; state.boredom -= rules.dynamics.activeBoredomRecovery * dt; }
+    for (const key of STATES) state[key] = clip(state[key]);
+    const related = active.find(e => e.type === 'challenge') || active[0];
+    if (state.fatigue >= rules.thresholds.fatigue) report('fatigue', related, t + dt, `疲劳 ${state.fatigue.toFixed(1)} ≥ ${rules.thresholds.fatigue}`, '缩短持续高负荷段落，测试休整或内容变化的作用。');
+    if (state.boredom >= rules.thresholds.boredom) report('boredom', related, t + dt, `无聊 ${state.boredom.toFixed(1)} ≥ ${rules.thresholds.boredom}；低活动持续 ${idle.toFixed(0)} 秒`, '缩短空窗或休整，增加线索、叙事或目标进展。');
+    const endpoint = result(t + dt);
+    area += endpoint.engagement * dt;
+    minimum = Math.min(minimum, endpoint.engagement);
+  }
+  // Interpolate only display samples. All calculations and diagnoses precede sampling.
+  const sampleAt = time => {
+    let low = 0, high = all.length - 1;
+    while (low < high) { const mid = Math.ceil((low + high) / 2); if (all[mid].time <= time) low = mid; else high = mid - 1; }
+    const a = all[low], b = all[low + 1] || a, fraction = b.time === a.time ? 0 : (time - a.time) / (b.time - a.time);
+    return { ...a, time, ...Object.fromEntries([...STATES, 'engagement', 'arousal', 'valence'].map(k => [k, a[k] + (b[k] - a[k]) * fraction])) };
+  };
+  for (let t = 0; t < duration; t += unit) samples.push(sampleAt(t));
+  samples.push(sampleAt(duration));
+  return { duration, samples, diagnostics, summary: { average: duration ? area / duration : all[0].engagement, minimum, final: all.at(-1) } };
+}
+
+
+const $ = id => document.getElementById(id);
+const STORAGE = 'ldtools-shot-v1';
+const SESSION_STORAGE = 'ldtools-shot-sessions-v1';
+let project = { version: 1, events: scenario(), rules: clone(DEFAULT_RULES), profile: clone(PROFILES.balanced), unit: 5 };
+let selected = project.events[0].id, baseline = null, scenarioName = 'standard', profileName = 'balanced', analysis;
+let sessions = [], activeSessionId;
+const sessionRuntime = new Map();
+const COLORS = { engagement: '#99dfbd', arousal: '#d4a071', valence: '#97aef4', fatigue: '#d28fa7' };
+const SERIES = { engagement: '参与意愿', arousal: '情绪唤醒', valence: '情绪效价', fatigue: '疲劳' };
+const EVENT_COLORS = { tutorial: '#7cb2cb', challenge: '#cb9d71', explore: '#82b7a6', story: '#b499d3', goal: '#c7bc78', reward: '#9bdfbc', failure: '#d38991', rest: '#7aa8bc' };
+const LABELS = { intensity: '强度', difficulty: '难度', novelty: '新颖度', feedback: '反馈清晰度', value: '奖励 / 目标价值', cost: '失败成本' };
+const DIAGNOSES = { 'knowledge-gap': '机制知识不足', repetition: '重复体验候选', 'challenge-mismatch': '挑战与能力失配', fatigue: '疲劳积累', boredom: '长时间低活动', 'reward-gap': '奖励与投入脱节' };
+const visible = new Set(Object.keys(SERIES));
+const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const format = x => Number(x.toFixed(2)).toString();
+const message = (text, error = false) => { $('status').textContent = text; $('status').className = error ? 'error' : ''; };
+try {
+  const workspace = localStorage.getItem(SESSION_STORAGE);
+  const saved = localStorage.getItem(STORAGE);
+  if (workspace) {
+    const restored = JSON.parse(workspace);
+    if (restored.version !== 1 || !Array.isArray(restored.sessions) || !restored.sessions.length) throw Error('无效会话数据');
+    const ids = new Set();
+    for (const session of restored.sessions) {
+      if (typeof session.id !== 'string' || ids.has(session.id) || typeof session.title !== 'string' || session.title.length > 80) throw Error('无效会话信息');
+      ids.add(session.id); validateProject(session.project);
+      analyze(session.project.events, session.project.rules, session.project.profile, session.project.unit);
+    }
+    sessions = restored.sessions;
+    activeSessionId = ids.has(restored.activeSessionId) ? restored.activeSessionId : sessions[0].id;
+    project = clone(sessions.find(s => s.id === activeSessionId).project);
+    selected = project.events[0]?.id; scenarioName = 'custom'; profileName = 'custom';
+  } else if (saved) {
+    const restored = clone(validateProject(JSON.parse(saved)));
+    analyze(restored.events, restored.rules, restored.profile, restored.unit);
+    project = restored; selected = project.events[0]?.id; scenarioName = 'custom'; profileName = 'custom';
+  }
+} catch { message('本地保存的数据无法读取，已使用示例。你可以导入项目 JSON 恢复。', true); }
+if (!sessions.length) {
+  activeSessionId = crypto.randomUUID();
+  sessions = [{ id: activeSessionId, title: '我的第一次分析', project: clone(project) }];
+}
+
+$('event-type').innerHTML = Object.entries(TYPES).map(([key, name]) => `<option value="${key}">${name}</option>`).join('');
+$('attributes').innerHTML = Object.entries(LABELS).map(([key, label]) => `<label>${label}<input name="${key}" type="number" min="0" max="10" step="any" required></label>`).join('');
+$('legend').innerHTML = Object.entries(SERIES).map(([key, label]) => `<label><input type="checkbox" data-series="${key}" checked><i style="background:${COLORS[key]}"></i>${label}</label>`).join('');
+
+function save() {
+  sessions.find(s => s.id === activeSessionId).project = clone(project);
+  try {
+    localStorage.setItem(SESSION_STORAGE, JSON.stringify({ version: 1, activeSessionId, sessions }));
+    $('storage-status').textContent = '分析会话自动保存在此浏览器';
+  } catch { $('storage-status').textContent = '浏览器保存不可用，请分别导出分析保留修改'; }
+}
+function renderSessions() {
+  $('session-title').value = sessions.find(s => s.id === activeSessionId).title;
+  document.title = `${$('session-title').value} · shot`;
+  const list = $('session-list'), signature = JSON.stringify(sessions.map(s => s.id));
+  // Input changes can fire between pointerdown and click. Update existing buttons
+  // rather than replacing their DOM nodes during analysis/settings updates.
+  if (list.dataset.signature !== signature) {
+    list.innerHTML = sessions.map(s => `<button class="session-item" data-session="${esc(s.id)}"><span class="session-icon" aria-hidden="true">◷</span><span class="session-name"></span><span class="session-count"></span></button>`).join('');
+    list.dataset.signature = signature;
+  }
+  [...list.children].forEach((button, index) => {
+    const session = sessions[index], active = session.id === activeSessionId;
+    button.classList.toggle('active', active); button.title = session.title;
+    if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
+    button.querySelector('.session-name').textContent = session.title;
+    button.querySelector('.session-count').textContent = session.project.events.length;
+  });
+}
+function activateSession(id) {
+  if (id === activeSessionId) return;
+  save();
+  sessionRuntime.set(activeSessionId, { selected, baseline, scenarioName, profileName });
+  activeSessionId = id;
+  project = clone(sessions.find(s => s.id === id).project);
+  const runtime = sessionRuntime.get(id);
+  selected = runtime?.selected ?? project.events[0]?.id;
+  baseline = runtime?.baseline ?? null;
+  scenarioName = runtime?.scenarioName ?? 'custom'; profileName = runtime?.profileName ?? 'custom';
+  render(); message('已切换分析会话。');
+}
+function setSidebar(open) {
+  const mobile = window.matchMedia('(max-width: 760px)').matches;
+  document.body.classList.toggle('sidebar-open', mobile && open);
+  document.body.classList.toggle('sidebar-collapsed', !mobile && !open);
+  $('sidebar-backdrop').hidden = !mobile || !open;
+  $('sidebar-toggle').setAttribute('aria-expanded', String(open));
+  $('session-sidebar').inert = !open;
+}
+$('new-session').addEventListener('click', () => {
+  const session = { id: crypto.randomUUID(), title: `新分析 ${sessions.length + 1}`, project: { version: 1, events: [], rules: clone(DEFAULT_RULES), profile: clone(PROFILES.balanced), unit: 5 } };
+  sessions.unshift(session); activateSession(session.id);
+  if (window.matchMedia('(max-width: 760px)').matches) setSidebar(false);
+  $('session-title').focus(); $('session-title').select();
+  message('已新建独立分析。可以先命名，再添加事件或载入示例。');
+});
+$('session-list').addEventListener('click', event => {
+  const button = event.target.closest('[data-session]'); if (!button) return;
+  activateSession(button.dataset.session);
+  if (window.matchMedia('(max-width: 760px)').matches) { setSidebar(false); $('sidebar-toggle').focus(); }
+});
+$('session-title').addEventListener('change', event => {
+  const title = event.target.value.trim() || '未命名分析';
+  sessions.find(s => s.id === activeSessionId).title = title;
+  // Keep sidebar buttons in place while a title blur precedes a session click.
+  const button = $('session-list').querySelector('.session-item.active');
+  button.querySelector('.session-name').textContent = title; button.title = title;
+  event.target.value = title; document.title = `${title} · shot`;
+  save(); message('分析名称已保存。');
+});
+$('session-title').addEventListener('keydown', event => { if (event.key === 'Enter') event.target.blur(); });
+$('sidebar-toggle').addEventListener('click', () => setSidebar($('sidebar-toggle').getAttribute('aria-expanded') !== 'true'));
+$('sidebar-backdrop').addEventListener('click', () => { setSidebar(false); $('sidebar-toggle').focus(); });
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && document.body.classList.contains('sidebar-open')) { setSidebar(false); $('sidebar-toggle').focus(); } });
+window.matchMedia('(max-width: 760px)').addEventListener('change', event => setSidebar(!event.matches));
+setSidebar(!window.matchMedia('(max-width: 760px)').matches);
+function render() {
+  analysis = analyze(project.events, project.rules, project.profile, project.unit);
+  $('average').textContent = analysis.summary.average.toFixed(2);
+  $('minimum').textContent = analysis.summary.minimum.toFixed(2);
+  $('duration').textContent = `${format(analysis.duration / 60)} 分`;
+  $('event-count').textContent = `${project.events.length} 个事件 · ${analysis.samples.length} 个采样点`;
+  $('diagnosis-count').textContent = analysis.diagnostics.length;
+  $('delta').className = '';
+  if (baseline) {
+    const change = analysis.summary.average - baseline.result.summary.average;
+    $('delta').textContent = `与基线相比 ${change >= 0 ? '+' : ''}${change.toFixed(2)} · 模型预测`;
+    $('delta').className = change >= 0 ? 'positive' : 'negative';
+  } else $('delta').textContent = '按时长加权 · 0–10';
+  $('baseline-label').hidden = !baseline; $('clear-baseline').hidden = !baseline;
+  $('scenario').value = scenarioName; $('profile').value = profileName; $('unit').value = project.unit;
+  $('rule-name').textContent = project.rules.name;
+  $('profile-info').textContent = JSON.stringify(project.profile, null, 2);
+  renderChart(); renderEvents(); renderDiagnostics(); fillEditor(); save(); renderSessions();
+}
+function renderChart() {
+  const width = 880, height = 285, left = 40, top = 15, bottom = 245, right = 860;
+  const duration = Math.max(1, analysis.duration, baseline?.result.duration || 0);
+  const x = t => left + t / duration * (right - left), y = v => bottom - v / 10 * (bottom - top);
+  let svg = `<svg class="chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="体验曲线。详细数值见上方摘要，诊断见下方列表。">`;
+  for (let v = 0; v <= 10; v += 2) svg += `<line class="grid" x1="${left}" x2="${right}" y1="${y(v)}" y2="${y(v)}"/><text x="25" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  for (let i = 0; i <= 6; i++) svg += `<text x="${x(i * duration / 6)}" y="270" text-anchor="middle">${format(i * duration / 6)}s</text>`;
+  for (const key of visible) {
+    if (baseline) svg += line(baseline.result.samples, key, true);
+    svg += line(analysis.samples, key, false);
+  }
+  function line(samples, key, dashed) {
+    const points = samples.map(s => `${x(s.time).toFixed(2)},${y(s[key]).toFixed(2)}`).join(' ');
+    return `<polyline points="${points}" fill="none" stroke="${COLORS[key]}" stroke-width="${dashed ? 1.5 : 2.5}" ${dashed ? 'stroke-dasharray="6 5" opacity=".5"' : ''} stroke-linejoin="round"/>`;
+  }
+  $('chart').innerHTML = svg + '</svg>';
+}
+function renderEvents() {
+  const ordered = [...project.events].sort((a, b) => a.start - b.start);
+  const duration = Math.max(1, analysis.duration);
+  $('timeline').innerHTML = `<div class="timeline-scale"><span>0s</span><span>${format(duration / 2)}s</span><span>${format(duration)}s</span></div>` + ordered.map(e => `<div class="timeline-row"><span class="timeline-name" title="${esc(e.name)}">${esc(e.name)}</span><div class="timeline-track"><button class="timeline-bar ${selected === e.id ? 'selected' : ''}" data-edit="${esc(e.id)}" aria-label="编辑 ${esc(e.name)}" title="${esc(e.name)} · ${format(e.start)}s / ${format(e.duration)}s" style="left:${Math.min(99.2, e.start / duration * 100)}%;width:${Math.max(.8, e.duration / duration * 100)}%;background:${EVENT_COLORS[e.type]}"></button></div></div>`).join('');
+  $('events').innerHTML = ordered.map(e => `<tr class="${e.id === selected ? 'selected-row' : ''}"><td><button class="event-name" data-edit="${esc(e.id)}">${esc(e.name)}</button></td><td>${TYPES[e.type]}</td><td>${format(e.start)}</td><td>${e.duration === 0 ? '瞬时' : format(e.duration)}</td><td><button data-edit="${esc(e.id)}">编辑</button><button data-copy="${esc(e.id)}">复制</button><button data-delete="${esc(e.id)}" aria-label="删除 ${esc(e.name)}">删除</button></td></tr>`).join('') || '<tr><td colspan="5" class="empty">还没有事件，点击「添加事件」开始。</td></tr>';
+}
+function renderDiagnostics() {
+  $('diagnostics').innerHTML = analysis.diagnostics.map(d => `<article class="diagnostic"><h3>${DIAGNOSES[d.rule]} <span class="tag">${format(d.time)}s</span>${d.eventId ? `<button data-edit="${esc(d.eventId)}">定位事件</button>` : ''}</h3><p>事件：${esc(d.eventName)} · 规则：${esc(d.rule)}</p><p>证据：${esc(d.evidence)}</p><p>修改假设：${esc(d.suggestion)}</p></article>`).join('') || '<p class="empty">当前规则未触发诊断候选。仍需结合设计意图与试玩检查。</p>';
+}
+function fillEditor() {
+  const e = project.events.find(e => e.id === selected);
+  const form = $('event-form');
+  for (const control of form.elements) control.disabled = !e;
+  $('editor-title').textContent = e ? '编辑事件' : '选择或添加事件';
+  if (e) {
+    for (const [k, v] of Object.entries(e)) if (form.elements.namedItem(k)) form.elements.namedItem(k).value = v;
+  } else form.reset();
+  $('form-error').textContent = '';
+}
+const newId = () => crypto.randomUUID();
+function apply(candidate, notice, custom = true) {
+  validateProject(candidate);
+  // Compute first: a rejected import/edit cannot corrupt the current project.
+  analyze(candidate.events, candidate.rules, candidate.profile, candidate.unit);
+  project = clone(candidate);
+  if (custom) scenarioName = 'custom';
+  render(); message(notice);
+}
+$('event-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const e = project.events.find(e => e.id === selected); if (!e) return;
+  const candidate = clone(project), values = Object.fromEntries(new FormData(event.target));
+  for (const k of ['start', 'duration', ...Object.keys(LABELS)]) values[k] = Number(values[k]);
+  Object.assign(candidate.events.find(e => e.id === selected), values);
+  try { apply(candidate, '事件已更新，分析结果已重新计算。'); } catch (e) { $('form-error').textContent = e.message; }
+});
+document.addEventListener('click', event => {
+  const edit = event.target.closest('[data-edit]'), copy = event.target.closest('[data-copy]'), remove = event.target.closest('[data-delete]');
+  if (edit) { selected = edit.dataset.edit; renderEvents(); fillEditor(); $('event-form').elements.namedItem('name').focus(); }
+  if (copy) {
+    const e = project.events.find(e => e.id === copy.dataset.copy), candidate = clone(project);
+    selected = newId(); candidate.events.push({ ...e, id: selected, name: e.name.slice(0, 195) + ' 副本', start: Math.min(7200 - e.duration, e.start + e.duration) });
+    try { apply(candidate, '事件已复制，可调整时间和属性。'); } catch (e) { selected = project.events[0]?.id; message(e.message, true); }
+  }
+  if (remove) {
+    const candidate = clone(project); candidate.events = candidate.events.filter(e => e.id !== remove.dataset.delete);
+    if (selected === remove.dataset.delete) selected = candidate.events[0]?.id;
+    apply(candidate, '事件已删除。若要恢复，可导入之前导出的项目。');
+  }
+});
+$('add-event').addEventListener('click', () => {
+  if (project.events.length >= 300) { message('最多支持 300 个事件。', true); return; }
+  selected = newId();
+  const candidate = clone(project); candidate.events.push(makeEvent({ id: selected, start: Math.min(7140, analysis.duration) }));
+  apply(candidate, '已添加事件，请在右侧填写内容。'); $('event-form').elements.namedItem('name').focus();
+});
+$('scenario').addEventListener('change', event => {
+  // Preserve edits: downloading before replacing provides a portable recovery path.
+  if (scenarioName === 'custom') download('shot-before-example.json', project);
+  scenarioName = event.target.value;
+  const candidate = clone(project); candidate.events = scenario(scenarioName); selected = candidate.events[0].id;
+  apply(candidate, '已载入假想示例流程。自定义流程如被替换，已自动导出备份。', false);
+});
+$('profile').addEventListener('change', event => {
+  profileName = event.target.value;
+  const candidate = clone(project); candidate.profile = clone(PROFILES[profileName]); apply(candidate, '已切换玩家画像。事件数据保持不变。', false);
+});
+$('unit').addEventListener('change', event => {
+  try { const candidate = clone(project); candidate.unit = Number(event.target.value); apply(candidate, '采样密度已更新，整体计算结果不变。', false); }
+  catch (e) { event.target.value = project.unit; message(e.message, true); }
+});
+$('baseline').addEventListener('click', () => { baseline = { project: clone(project), result: clone(analysis) }; render(); message('已冻结当前结果作为基线。接下来编辑事件、画像或规则，查看预测差异。'); });
+$('clear-baseline').addEventListener('click', () => { baseline = null; render(); message('对比基线已清除。'); });
+$('legend').addEventListener('change', event => { const key = event.target.dataset.series; if (event.target.checked) visible.add(key); else visible.delete(key); renderChart(); });
+function download(name, value) {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$('export-project').addEventListener('click', () => download('shot-project.json', project));
+$('export-rules').addEventListener('click', () => download('shot-rules.json', project.rules));
+$('export-profile').addEventListener('click', () => download('shot-profile.json', project.profile));
+async function read(input, validate, consume) {
+  const file = input.files[0]; if (!file) return;
+  try { if (file.size > 2_000_000) throw Error('文件不得超过 2 MB'); const data = JSON.parse(await file.text()); validate(data); consume(data); }
+  catch (e) { message(`导入失败：${e.message}`, true); }
+  finally { input.value = ''; }
+}
+$('import-project').addEventListener('change', e => read(e.target, validateProject, data => {
+  // Validate execution before changing selection/configuration.
+  analyze(data.events, data.rules, data.profile, data.unit);
+  selected = data.events[0]?.id; profileName = 'custom'; apply(data, '项目已导入，分析完成。');
+}));
+$('import-rules').addEventListener('change', e => read(e.target, validateRules, rules => { const candidate = clone(project); candidate.rules = rules; apply(candidate, '规则包已导入，分析结果已更新。', false); }));
+$('import-profile').addEventListener('change', e => read(e.target, validateProfile, profile => { const candidate = clone(project); candidate.profile = profile; apply(candidate, '玩家画像已导入。', false); profileName = 'custom'; $('profile').value = profileName; }));
+$('default-rules').addEventListener('click', () => { const candidate = clone(project); candidate.rules = clone(DEFAULT_RULES); apply(candidate, '已恢复默认实验规则。', false); });
+render();
+</script>
+</body>
+</html>
