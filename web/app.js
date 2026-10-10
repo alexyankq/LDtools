@@ -5,8 +5,9 @@ const $ = id => document.getElementById(id);
 const STORAGE = 'ldtools-shot-v1';
 const SESSION_STORAGE = 'ldtools-shot-sessions-v1';
 let project = { version: 1, events: scenario(), rules: clone(DEFAULT_RULES), profile: clone(PROFILES.balanced), unit: 5 };
-let selected = project.events[0].id, baseline = null, profileName = 'balanced', analysis = null, analyzedProject = null;
+let selected = project.events[0].id, profileName = 'balanced', analysis = null, analyzedProject = null;
 let sessions = [], activeSessionId;
+let groups = [], showArchived = false, managementTarget = null;
 const sessionRuntime = new Map();
 let ruleLibrary = [{ id: 'default', data: clone(DEFAULT_RULES) }];
 let profileLibrary = Object.entries(PROFILES).map(([id, data]) => ({ id, data: clone(data) }));
@@ -27,12 +28,31 @@ try {
   const saved = localStorage.getItem(STORAGE);
   if (workspace) {
     const restored = JSON.parse(workspace);
-    if (restored.version !== 1 || !Array.isArray(restored.sessions) || !restored.sessions.length) throw Error('无效会话数据');
+    if (![1, 2].includes(restored.version) || !Array.isArray(restored.sessions) || !restored.sessions.length) throw Error('无效会话数据');
     const ids = new Set();
     for (const session of restored.sessions) {
       if (typeof session.id !== 'string' || ids.has(session.id) || typeof session.title !== 'string' || session.title.length > 80) throw Error('无效会话信息');
-      ids.add(session.id); validateProject(session.project);
-      analyze(session.project.events, session.project.rules, session.project.profile, session.project.unit);
+      ids.add(session.id);
+      if (!session.plans) {
+        validateProject(session.project);
+        session.plans = [{ id: crypto.randomUUID(), name: '方案 1', project: session.project }];
+        session.activePlanId = session.plans[0].id;
+        session.comparisonIds = [session.activePlanId];
+      }
+      if (!Array.isArray(session.plans) || !session.plans.length || session.plans.length > 30) throw Error('无效方案列表');
+      const planIds = new Set();
+      for (const plan of session.plans) {
+        if (typeof plan.id !== 'string' || planIds.has(plan.id) || typeof plan.name !== 'string' || plan.name.length > 80) throw Error('无效方案');
+        planIds.add(plan.id); validateProject(plan.project);
+        analyze(plan.project.events, plan.project.rules, plan.project.profile, plan.project.unit);
+        if (plan.analyzedProject) {
+          const snapshot = validateProject(JSON.parse(plan.analyzedProject));
+          sessionRuntime.set(plan.id, { analysis: analyze(snapshot.events, snapshot.rules, snapshot.profile, snapshot.unit), analyzedProject: plan.analyzedProject });
+        }
+      }
+      if (!planIds.has(session.activePlanId)) session.activePlanId = session.plans[0].id;
+      session.comparisonIds = (session.comparisonIds || [session.activePlanId]).filter(id => planIds.has(id));
+      session.project = session.plans.find(p => p.id === session.activePlanId).project;
     }
     for (const [key, validate] of [['ruleLibrary', validateRules], ['profileLibrary', validateProfile]]) {
       if (restored[key] !== undefined) {
@@ -48,7 +68,20 @@ try {
       for (const preset of restored.presets) { if (typeof preset.id !== 'string' || presetIds.has(preset.id)) throw Error('无效预设'); presetIds.add(preset.id); validateEvents([preset.data]); }
       presets = restored.presets;
     }
+    if (restored.groups !== undefined) {
+      if (!Array.isArray(restored.groups) || restored.groups.length > 100) throw Error('无效项目列表');
+      const groupIds = new Set();
+      for (const group of restored.groups) {
+        if (typeof group.id !== 'string' || groupIds.has(group.id) || typeof group.name !== 'string' || group.name.length > 80) throw Error('无效项目');
+        groupIds.add(group.id);
+      }
+      groups = restored.groups;
+    }
     sessions = restored.sessions;
+    for (const session of sessions) {
+      session.pinned = session.pinned === true; session.archived = session.archived === true;
+      if (!groups.some(g => g.id === session.groupId)) session.groupId = null;
+    }
     activeSessionId = ids.has(restored.activeSessionId) ? restored.activeSessionId : sessions[0].id;
     project = clone(sessions.find(s => s.id === activeSessionId).project);
     selected = project.events[0]?.id; profileName = 'custom';
@@ -63,47 +96,76 @@ if (!sessions.length) {
   sessions = [{ id: activeSessionId, title: '我的第一次分析', project: clone(project) }];
 }
 
+for (const session of sessions) {
+  if (!session.plans) {
+    session.plans = [{ id: crypto.randomUUID(), name: '方案 1', project: clone(session.project) }];
+    session.activePlanId = session.plans[0].id; session.comparisonIds = [session.activePlanId];
+  }
+}
+function currentSession() { return sessions.find(s => s.id === activeSessionId); }
+function currentPlan() { return currentSession().plans.find(p => p.id === currentSession().activePlanId); }
+function storeRuntime() {
+  currentPlan().project = clone(project);
+  currentPlan().analyzedProject = analyzedProject;
+  sessionRuntime.set(currentPlan().id, { selected, profileName, analysis, analyzedProject });
+}
+function loadPlan() {
+  project = clone(currentPlan().project);
+  const runtime = sessionRuntime.get(currentPlan().id);
+  selected = runtime?.selected ?? project.events[0]?.id;
+  analysis = runtime?.analysis ?? null; analyzedProject = runtime?.analyzedProject ?? null;
+  profileName = runtime?.profileName ?? 'custom';
+  eventDraft = null; editingPreset = null; hideContextMenu();
+}
+loadPlan();
+
 $('event-type').innerHTML = Object.entries(TYPES).map(([key, name]) => `<option value="${key}">${name}</option>`).join('');
 $('attributes').innerHTML = Object.entries(LABELS).map(([key, label]) => `<label>${label}<input name="${key}" type="number" min="0" max="10" step="any" required></label>`).join('');
 $('legend').innerHTML = Object.entries(SERIES).map(([key, label]) => `<label><input type="checkbox" data-series="${key}" checked><i style="background:${COLORS[key]}"></i>${label}</label>`).join('');
 
 function save() {
-  sessions.find(s => s.id === activeSessionId).project = clone(project);
+  storeRuntime();
+  currentSession().project = clone(project);
   try {
-    localStorage.setItem(SESSION_STORAGE, JSON.stringify({ version: 1, activeSessionId, sessions, ruleLibrary, profileLibrary, presets }));
+    localStorage.setItem(SESSION_STORAGE, JSON.stringify({ version: 2, activeSessionId, sessions, groups, ruleLibrary, profileLibrary, presets }));
     $('storage-status').textContent = '分析会话自动保存在此浏览器';
   } catch { $('storage-status').textContent = '浏览器保存不可用，请分别导出分析保留修改'; }
 }
 function renderSessions() {
   $('session-title').value = sessions.find(s => s.id === activeSessionId).title;
   document.title = `${$('session-title').value} · shot`;
-  const list = $('session-list'), signature = JSON.stringify(sessions.map(s => s.id));
-  // Input changes can fire between pointerdown and click. Update existing buttons
-  // rather than replacing their DOM nodes during analysis/settings updates.
+  $('archive-toggle').textContent = showArchived ? '返回会话列表' : `归档会话（${sessions.filter(s => s.archived).length}）`;
+  $('archive-toggle').setAttribute('aria-pressed', String(showArchived));
+  const list = $('session-list');
+  const shown = sessions.filter(s => !!s.archived === showArchived);
+  const pinned = shown.filter(s => s.pinned), normal = shown.filter(s => !s.pinned);
+  const signature = JSON.stringify({ showArchived, groups, rows: shown.map(s => [s.id, s.pinned, s.groupId]) });
+  // Preserve buttons during configuration edits and title blur before a click.
   if (list.dataset.signature !== signature) {
-    list.innerHTML = sessions.map(s => `<button class="session-item" data-session="${esc(s.id)}"><span class="session-icon" aria-hidden="true">◷</span><span class="session-name"></span><span class="session-count"></span></button>`).join('');
-    list.dataset.signature = signature;
+    const rows = entries => entries.map(s => `<div class="session-row"><button class="session-item" data-session="${esc(s.id)}"><span class="session-icon" aria-hidden="true">${s.pinned ? '⌖' : '◷'}</span><span class="session-name"></span><span class="session-count"></span></button><button class="session-more" data-session-menu="${esc(s.id)}" aria-label="会话菜单">⋯</button></div>`).join('');
+    let content = pinned.length ? `<p class="sidebar-section-title">置顶</p>${rows(pinned)}` : '';
+    if (!showArchived) for (const group of groups) {
+      const entries = normal.filter(s => s.groupId === group.id);
+      content += `<section class="sidebar-project"><div class="project-heading"><button data-group-toggle="${esc(group.id)}" aria-expanded="${!group.collapsed}">${group.collapsed ? '▸' : '▾'} ▣ ${esc(group.name)}</button><button data-new-in-project="${esc(group.id)}" aria-label="在 ${esc(group.name)} 中新建会话">＋</button><button data-group-menu="${esc(group.id)}" aria-label="项目菜单">⋯</button></div>${group.collapsed ? '' : rows(entries) || '<p class="sidebar-empty">暂无会话</p>'}</section>`;
+    }
+    const ungrouped = showArchived ? normal : normal.filter(s => !s.groupId);
+    content += `<p class="sidebar-section-title">${showArchived ? '归档会话' : '会话'}</p>${rows(ungrouped) || '<p class="sidebar-empty">暂无会话</p>'}`;
+    list.innerHTML = content; list.dataset.signature = signature;
   }
-  [...list.children].forEach((button, index) => {
-    const session = sessions[index], active = session.id === activeSessionId;
+  for (const button of list.querySelectorAll('[data-session]')) {
+    const session = sessions.find(s => s.id === button.dataset.session), active = session.id === activeSessionId;
     button.classList.toggle('active', active); button.title = session.title;
     if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
     button.querySelector('.session-name').textContent = session.title;
-    button.querySelector('.session-count').textContent = session.project.events.length;
-  });
+    button.querySelector('.session-count').textContent = session.plans.length + '方案';
+    button.nextElementSibling.setAttribute('aria-label', `${session.title} 的菜单`);
+  }
 }
 function activateSession(id) {
   if (id === activeSessionId) return;
   save();
-  sessionRuntime.set(activeSessionId, { selected, baseline, profileName, analysis, analyzedProject });
   activeSessionId = id;
-  project = clone(sessions.find(s => s.id === id).project);
-  eventDraft = null; editingPreset = null; hideContextMenu();
-  const runtime = sessionRuntime.get(id);
-  selected = runtime?.selected ?? project.events[0]?.id;
-  baseline = runtime?.baseline ?? null;
-  analysis = runtime?.analysis ?? null; analyzedProject = runtime?.analyzedProject ?? null;
-  profileName = runtime?.profileName ?? 'custom';
+  loadPlan();
   render(); message('已切换分析会话。');
 }
 function setSidebar(open) {
@@ -114,12 +176,104 @@ function setSidebar(open) {
   $('sidebar-toggle').setAttribute('aria-expanded', String(open));
   $('session-sidebar').inert = !open;
 }
-$('new-session').addEventListener('click', () => {
-  const session = { id: crypto.randomUUID(), title: `新分析 ${sessions.length + 1}`, project: { version: 1, events: [], rules: clone(DEFAULT_RULES), profile: clone(PROFILES.balanced), unit: 5 } };
+function createSession(groupId = null, focus = true) {
+  const session = { id: crypto.randomUUID(), title: `新分析 ${sessions.length + 1}`, groupId, project: { version: 1, events: [], rules: clone(DEFAULT_RULES), profile: clone(PROFILES.balanced), unit: 5 } };
+  session.plans = [{ id: crypto.randomUUID(), name: '方案 1', project: clone(session.project) }];
+  session.activePlanId = session.plans[0].id; session.comparisonIds = [session.activePlanId];
+  showArchived = false;
+  const group = groups.find(g => g.id === groupId); if (group) group.collapsed = false;
   sessions.unshift(session); activateSession(session.id);
-  if (window.matchMedia('(max-width: 760px)').matches) setSidebar(false);
-  $('session-title').focus(); $('session-title').select();
-  message('已新建独立分析。可以先命名，再添加事件或载入示例。');
+  if (focus) {
+    if (window.matchMedia('(max-width: 760px)').matches) setSidebar(false);
+    $('session-title').focus(); $('session-title').select();
+  }
+  message('已新建独立分析。可以先命名，再添加事件。');
+}
+$('new-session').addEventListener('click', () => createSession());
+$('archive-toggle').addEventListener('click', () => { showArchived = !showArchived; renderSessions(); });
+function openManager(kind, id = null) {
+  managementTarget = { kind, id };
+  const item = kind === 'session' ? sessions.find(s => s.id === id) : groups.find(g => g.id === id);
+  $('manager-title').textContent = item ? (kind === 'session' ? item.title : item.name) : '新建项目';
+  $('manager-actions').hidden = !item;
+  $('manager-fields').hidden = !!item;
+  $('manager-name').value = item ? (kind === 'session' ? item.title : item.name) : '';
+  $('manager-name-label').hidden = false; $('manager-group-label').hidden = true;
+  $('manager-save').dataset.mode = item ? 'rename' : 'create';
+  $('manager-pin').hidden = kind !== 'session'; $('manager-archive').hidden = kind !== 'session'; $('manager-move').hidden = kind !== 'session';
+  if (kind === 'session') { $('manager-pin').textContent = item.pinned ? '取消置顶' : '置顶'; $('manager-archive').textContent = item.archived ? '取消归档' : '归档'; }
+  $('manager-delete').textContent = kind === 'session' ? '删除会话' : '删除项目分组';
+  $('session-manager').showModal();
+  if (!item) $('manager-name').focus();
+}
+$('new-group').addEventListener('click', () => openManager('group'));
+$('close-session-manager').addEventListener('click', () => $('session-manager').close());
+$('session-list').addEventListener('click', event => {
+  const sessionMenu = event.target.closest('[data-session-menu]'), groupMenu = event.target.closest('[data-group-menu]');
+  const toggle = event.target.closest('[data-group-toggle]'), create = event.target.closest('[data-new-in-project]');
+  if (sessionMenu) openManager('session', sessionMenu.dataset.sessionMenu);
+  if (groupMenu) openManager('group', groupMenu.dataset.groupMenu);
+  if (toggle) { const group = groups.find(g => g.id === toggle.dataset.groupToggle); group.collapsed = !group.collapsed; save(); renderSessions(); }
+  if (create) createSession(create.dataset.newInProject);
+});
+$('manager-rename').addEventListener('click', () => {
+  $('manager-fields').hidden = false; $('manager-actions').hidden = true; $('manager-save').dataset.mode = 'rename';
+  $('manager-name').focus(); $('manager-name').select();
+});
+$('manager-move').addEventListener('click', () => {
+  $('manager-fields').hidden = false; $('manager-actions').hidden = true; $('manager-name-label').hidden = true; $('manager-group-label').hidden = false;
+  $('manager-group').innerHTML = '<option value="">不属于项目</option>' + groups.map(g => `<option value="${esc(g.id)}">${esc(g.name)}</option>`).join('');
+  $('manager-group').value = sessions.find(s => s.id === managementTarget.id).groupId || '';
+  $('manager-save').dataset.mode = 'move'; $('manager-group').focus();
+});
+$('manager-fields').addEventListener('submit', event => {
+  event.preventDefault();
+  const { kind, id } = managementTarget, mode = $('manager-save').dataset.mode;
+  const name = $('manager-name').value.trim();
+  if (mode !== 'move' && !name) { $('manager-name').focus(); return; }
+  if (mode === 'create') {
+    if (groups.length >= 100) { message('最多支持 100 个项目。', true); return; }
+    groups.push({ id: crypto.randomUUID(), name });
+  } else {
+    const item = kind === 'session' ? sessions.find(s => s.id === id) : groups.find(g => g.id === id);
+    if (mode === 'move') { item.groupId = $('manager-group').value || null; const group = groups.find(g => g.id === item.groupId); if (group) group.collapsed = false; }
+    else item[kind === 'session' ? 'title' : 'name'] = name;
+  }
+  $('session-manager').close(); save(); renderSessions(); message('已保存。');
+});
+function chooseAvailableSession() {
+  const next = sessions.find(s => !s.archived);
+  if (next) { activeSessionId = next.id; loadPlan(); render(); }
+  else {
+    // Avoid saving a deleted active session; create a blank replacement first.
+    const data = { version: 1, events: [], rules: clone(DEFAULT_RULES), profile: clone(PROFILES.balanced), unit: 5 };
+    const plan = { id: crypto.randomUUID(), name: '方案 1', project: data };
+    const session = { id: crypto.randomUUID(), title: '新分析', project: data, plans: [plan], activePlanId: plan.id, comparisonIds: [plan.id] };
+    sessions.unshift(session); activeSessionId = session.id; loadPlan(); render();
+  }
+}
+$('manager-pin').addEventListener('click', () => {
+  const item = sessions.find(s => s.id === managementTarget.id); item.pinned = !item.pinned;
+  $('session-manager').close(); save(); renderSessions();
+});
+$('manager-archive').addEventListener('click', () => {
+  save(); const item = sessions.find(s => s.id === managementTarget.id); item.archived = !item.archived;
+  $('session-manager').close(); cancelDrag();
+  if (item.archived && item.id === activeSessionId) chooseAvailableSession();
+  else { save(); renderSessions(); }
+  message(item.archived ? '会话已归档，可在归档列表恢复。' : '会话已取消归档。');
+});
+$('manager-delete').addEventListener('click', () => {
+  const { kind, id } = managementTarget;
+  if (!window.confirm(kind === 'session' ? '删除此会话及其中全部方案？此操作无法撤销。' : '删除此项目分组？其中的会话会保留并移出项目。')) return;
+  save(); $('session-manager').close(); cancelDrag();
+  if (kind === 'group') { groups = groups.filter(g => g.id !== id); for (const session of sessions) if (session.groupId === id) session.groupId = null; save(); renderSessions(); }
+  else {
+    const removed = sessions.find(s => s.id === id); for (const plan of removed.plans) sessionRuntime.delete(plan.id);
+    sessions = sessions.filter(s => s.id !== id);
+    if (id === activeSessionId) chooseAvailableSession(); else { save(); renderSessions(); }
+  }
+  message(kind === 'session' ? '会话已删除。' : '项目分组已删除，会话已保留。');
 });
 $('session-list').addEventListener('click', event => {
   const button = event.target.closest('[data-session]'); if (!button) return;
@@ -131,7 +285,7 @@ $('session-title').addEventListener('change', event => {
   sessions.find(s => s.id === activeSessionId).title = title;
   // Keep sidebar buttons in place while a title blur precedes a session click.
   const button = $('session-list').querySelector('.session-item.active');
-  button.querySelector('.session-name').textContent = title; button.title = title;
+  if (button) { button.querySelector('.session-name').textContent = title; button.title = title; }
   event.target.value = title; document.title = `${title} · shot`;
   save(); message('分析名称已保存。');
 });
@@ -156,14 +310,9 @@ function render() {
   $('event-count').textContent = `${project.events.length} 个事件${analysis ? ` · 上次分析 ${analysis.samples.length} 个采样点` : ''}`;
   $('diagnosis-count').textContent = analysis ? analysis.diagnostics.length : '—';
   $('analysis-state').textContent = !analysis ? '配置会话并准备事件后，点击「开始分析」。' : dirty() ? '会话内容已变更；下方仍是上次结果，点击「开始分析」更新。' : '分析已完成，结果对应当前会话配置。';
-  $('baseline').disabled = !analysis || dirty();
+  $('delta').textContent = '按时长加权 · 0–10';
   $('delta').className = '';
-  if (baseline && analysis) {
-    const change = analysis.summary.average - baseline.result.summary.average;
-    $('delta').textContent = `与基线相比 ${change >= 0 ? '+' : ''}${change.toFixed(2)} · 模型预测`;
-    $('delta').className = change >= 0 ? 'positive' : 'negative';
-  } else $('delta').textContent = '按时长加权 · 0–10';
-  $('baseline-label').hidden = !baseline; $('clear-baseline').hidden = !baseline;
+  storeRuntime(); renderPlans();
   const ruleId = register(ruleLibrary, project.rules), profileId = register(profileLibrary, project.profile);
   for (const [id, library, value] of [['rules', ruleLibrary, ruleId], ['profile', profileLibrary, profileId]]) {
     $(id).innerHTML = library.map(e => `<option value="${esc(e.id)}">${esc(e.data.name)}</option>`).join(''); $(id).value = value;
@@ -176,21 +325,53 @@ function render() {
   window.scrollTo(scroll.x, scroll.y); $('floating-config').scrollTop = scroll.config;
   requestAnimationFrame(() => { window.scrollTo(scroll.x, scroll.y); });
 }
+const PLAN_DASHES = ['', '8 5', '2 4', '12 4 2 4', '4 3'];
+function renderPlans() {
+  const session = currentSession();
+  $('plan-select').innerHTML = session.plans.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  $('plan-select').value = session.activePlanId; $('plan-name').value = currentPlan().name;
+  $('plan-comparison').innerHTML = session.plans.map((p, index) => {
+    const runtime = sessionRuntime.get(p.id), result = runtime?.analysis;
+    const stale = result && JSON.stringify(p.project) !== runtime.analyzedProject;
+    return `<label class="plan-choice"><input type="checkbox" data-compare-plan="${esc(p.id)}" ${session.comparisonIds.includes(p.id) ? 'checked' : ''}><svg width="32" height="12" aria-hidden="true"><line x1="0" x2="32" y1="6" y2="6" stroke="currentColor" stroke-width="2" stroke-dasharray="${PLAN_DASHES[index % PLAN_DASHES.length]}"/></svg><span>${esc(p.name)}${p.id === session.activePlanId ? '（当前）' : ''} · ${result ? `平均 ${result.summary.average.toFixed(2)}${stale ? ' · 待重新分析' : ''}` : '未分析'}</span></label>`;
+  }).join('');
+}
+function activatePlan(id) {
+  if (id === currentSession().activePlanId) return;
+  save(); cancelDrag(); currentSession().activePlanId = id; loadPlan(); render(); message('已切换方案。');
+}
+function createPlan(copy) {
+  if (currentSession().plans.length >= 30) { message('每个会话最多支持 30 个方案。', true); return; }
+  save();
+  const data = clone(project);
+  if (!copy) { data.events = []; delete data.timelineLength; }
+  const plan = { id: crypto.randomUUID(), name: copy ? currentPlan().name.slice(0, 70) + ' 副本' : `方案 ${currentSession().plans.length + 1}`, project: data };
+  currentSession().plans.push(plan); currentSession().comparisonIds.push(plan.id); activatePlan(plan.id);
+  message(copy ? '已复制当前方案，修改与分析结果相互独立。' : '已新建空白方案，沿用当前规则、用户类型和精度。');
+}
+$('plan-select').addEventListener('change', event => activatePlan(event.target.value));
+$('new-plan').addEventListener('click', () => createPlan(false));
+$('copy-plan').addEventListener('click', () => createPlan(true));
+$('plan-name').addEventListener('change', event => { currentPlan().name = event.target.value.trim() || '未命名方案'; save(); renderPlans(); renderChart(); });
+$('plan-comparison').addEventListener('change', event => {
+  const id = event.target.dataset.comparePlan; if (!id) return;
+  const session = currentSession();
+  session.comparisonIds = event.target.checked ? [...new Set([...session.comparisonIds, id])] : session.comparisonIds.filter(value => value !== id);
+  save(); renderChart();
+});
 function renderChart() {
-  if (!analysis) { $('chart').innerHTML = '<p class="empty">点击「开始分析」生成体验曲线。</p>'; return; }
+  const compared = currentSession().plans.filter(p => currentSession().comparisonIds.includes(p.id)).map(p => ({ plan: p, runtime: sessionRuntime.get(p.id) })).filter(p => p.runtime?.analysis);
+  if (!compared.length) { $('chart').innerHTML = '<p class="empty">勾选已分析的方案显示曲线；点击「开始分析」更新所有方案，或勾选「仅分析当前方案」后单独分析。</p>'; return; }
   const width = 880, height = 285, left = 40, top = 15, bottom = 245, right = 860;
-  const duration = Math.max(1, analysis.duration, baseline?.result.duration || 0);
+  const duration = Math.max(1, ...compared.map(p => p.runtime.analysis.duration));
   const x = t => left + t / duration * (right - left), y = v => bottom - v / 10 * (bottom - top);
   let svg = `<svg class="chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="体验曲线。详细数值见上方摘要，诊断见下方列表。">`;
   for (let v = 0; v <= 10; v += 2) svg += `<line class="grid" x1="${left}" x2="${right}" y1="${y(v)}" y2="${y(v)}"/><text x="25" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
   for (let i = 0; i <= 6; i++) svg += `<text x="${x(i * duration / 6)}" y="270" text-anchor="middle">${format(i * duration / 6)}s</text>`;
-  for (const key of visible) {
-    if (baseline) svg += line(baseline.result.samples, key, true);
-    svg += line(analysis.samples, key, false);
-  }
-  function line(samples, key, dashed) {
-    const points = samples.map(s => `${x(s.time).toFixed(2)},${y(s[key]).toFixed(2)}`).join(' ');
-    return `<polyline points="${points}" fill="none" stroke="${COLORS[key]}" stroke-width="${dashed ? 1.5 : 2.5}" ${dashed ? 'stroke-dasharray="6 5" opacity=".5"' : ''} stroke-linejoin="round"/>`;
+  for (const { plan, runtime } of compared) for (const key of visible) {
+    const index = currentSession().plans.indexOf(plan);
+    const points = runtime.analysis.samples.map(s => `${x(s.time).toFixed(2)},${y(s[key]).toFixed(2)}`).join(' ');
+    svg += `<polyline data-plan="${esc(plan.id)}" points="${points}" fill="none" stroke="${COLORS[key]}" stroke-width="2.5" stroke-dasharray="${PLAN_DASHES[index % PLAN_DASHES.length]}" stroke-linejoin="round"><title>${esc(plan.name)} · ${SERIES[key]}</title></polyline>`;
   }
   $('chart').innerHTML = svg + '</svg>';
 }
@@ -275,11 +456,26 @@ $('unit').addEventListener('change', event => {
   try { const candidate = clone(project); candidate.unit = Number(event.target.value); apply(candidate, '分析精度已设置，点击「开始分析」更新采样。', false); }
   catch (e) { event.target.value = project.unit; message(e.message, true); }
 });
-$('baseline').addEventListener('click', () => { baseline = { project: clone(project), result: clone(analysis) }; render(); message('已冻结当前结果作为基线。接下来编辑事件、画像或规则，查看预测差异。'); });
-$('clear-baseline').addEventListener('click', () => { baseline = null; render(); message('对比基线已清除。'); });
 $('legend').addEventListener('change', event => { const key = event.target.dataset.series; if (event.target.checked) visible.add(key); else visible.delete(key); renderChart(); });
 $('run-analysis').addEventListener('click', () => {
-  try { analysis = analyze(project.events, project.rules, project.profile, project.unit); analyzedProject = JSON.stringify(project); render(); message('当前会话分析完成。'); }
+  try {
+    storeRuntime();
+    const onlyCurrent = $('analyze-current-only').checked;
+    const targets = onlyCurrent ? [currentPlan()] : currentSession().plans;
+    // Compute every requested result before publishing any, so a failure cannot
+    // leave a comparison partially updated. Reuse unchanged snapshots.
+    const results = targets.map(plan => {
+      const snapshot = JSON.stringify(plan.project), runtime = sessionRuntime.get(plan.id);
+      return { plan, snapshot, result: runtime?.analysis && runtime.analyzedProject === snapshot ? runtime.analysis : analyze(plan.project.events, plan.project.rules, plan.project.profile, plan.project.unit) };
+    });
+    for (const { plan, snapshot, result } of results) {
+      sessionRuntime.set(plan.id, { ...sessionRuntime.get(plan.id), analysis: result, analyzedProject: snapshot });
+      plan.analyzedProject = snapshot;
+    }
+    analysis = sessionRuntime.get(currentPlan().id).analysis;
+    analyzedProject = sessionRuntime.get(currentPlan().id).analyzedProject;
+    render(); message(onlyCurrent ? '当前方案分析完成。' : `当前会话全部 ${targets.length} 个方案分析完成。`);
+  }
   catch (error) { message(error.message, true); }
 });
 function setConfigOpen(open) {
@@ -405,8 +601,8 @@ $('timeline').addEventListener('contextmenu', event => {
   menu.querySelector('button').focus();
 });
 document.addEventListener('pointerdown', event => { if (!event.target.closest('#event-context-menu')) hideContextMenu(); });
-document.addEventListener('keydown', event => { if (event.key === 'Escape') { hideContextMenu(); cancelDrag(); } });
-window.addEventListener('blur', () => { hideContextMenu(); cancelDrag(); });
+document.addEventListener('keydown', event => { if (event.key === 'Escape') { hideContextMenu(); } });
+window.addEventListener('blur', () => { hideContextMenu(); });
 $('event-context-menu').addEventListener('click', event => {
   const action = event.target.closest('[data-context]')?.dataset.context;
   const data = project.events.find(e => e.id === contextEventId); if (!data || !action) return;
