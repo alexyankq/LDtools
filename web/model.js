@@ -60,6 +60,7 @@ export function validateEvents(events) {
     if (ids.has(e.id)) throw Error('事件 ID 不能重复'); ids.add(e.id);
     if (!Object.hasOwn(TYPES, e.type)) throw Error('未知事件类型');
     number(e.start, 0, 7200, '开始时间'); number(e.duration, 0, 7200, '持续时间');
+    if (e.lane !== undefined) { number(e.lane, 0, 300, '轨道'); if (!Number.isInteger(e.lane)) throw Error('轨道必须为整数'); }
     if (e.start + e.duration > 7200) throw Error('原型支持最长 7200 秒的时间轴');
     for (const k of ['intensity', 'difficulty', 'novelty', 'feedback', 'value', 'cost']) number(e[k], 0, 10, k);
     text(e.mechanic, '教学机制'); text(e.requires, '前置机制');
@@ -91,6 +92,7 @@ export function validateRules(rules) {
 export function validateProject(p) {
   object(p, '项目'); if (p.version !== 1) throw Error('只支持 version: 1 的项目');
   validateEvents(p.events); validateRules(p.rules); validateProfile(p.profile); number(p.unit, 1, 300, '分析时元');
+  if (p.timelineLength !== undefined) number(p.timelineLength, 1, 7200, '时间轴范围');
   return p;
 }
 export function analyze(events, rules = DEFAULT_RULES, profile = PROFILES.balanced, unit = 5) {

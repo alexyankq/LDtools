@@ -2,30 +2,32 @@
 <html lang="zh-CN">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>shot · 关卡体验实验室</title><link rel="stylesheet" href="/style.css"></head>
 <body>
-  <header><a class="brand" href="/">shot<span>关卡体验实验室</span></a><div class="header-right"><span class="tag">实验原型 · v0.1</span><button id="export-project">导出项目</button><label class="button">导入项目<input type="file" id="import-project" accept=".json,application/json" hidden></label></div></header>
+  <nav id="session-sidebar" class="session-sidebar" aria-label="分析会话">
+    <div class="sidebar-brand"><span>shot</span><span class="sidebar-subtitle">关卡体验实验室</span></div>
+    <button id="new-session" class="new-session">＋ 新建分析</button>
+    <div class="library-navigation"><button id="open-rule-editor">规则编辑器</button><button id="open-profile-editor">玩家类型编辑器</button></div>
+    <p class="session-list-label">我的分析</p>
+    <div id="session-list" class="session-list"></div>
+    <div class="sidebar-footer">每次分析，都是一个独立会话。<br>会话自动保存在当前浏览器。</div>
+  </nav>
+  <button id="sidebar-backdrop" class="sidebar-backdrop" aria-label="关闭会话侧栏" hidden></button>
+  <div class="app-content">
+  <header><div class="session-header"><button id="sidebar-toggle" class="sidebar-toggle" aria-label="切换会话侧栏" aria-controls="session-sidebar" aria-expanded="true">☰</button><input id="session-title" aria-label="当前分析名称" maxlength="80" placeholder="未命名分析"></div><div class="header-right"><span class="tag">实验原型 · v0.1</span><button id="export-project">导出当前分析</button><label class="button">导入到当前分析<input type="file" id="import-project" accept=".json,application/json" hidden></label></div></header>
   <main>
     <div class="intro"><div><p class="eyebrow">LEVEL EXPERIENCE / DIAGNOSTICS</p><h1>看见节奏，找到改变的起点。</h1><p>将事件转化为体验曲线，用可追溯的诊断检验关卡设计假设。</p></div><div class="notice">所有曲线均为实验模型预测。<br>示例事件为假想流程，非玩家实测。</div></div>
     <section class="controls panel" aria-label="分析设置">
-      <label>示例流程<select id="scenario"><option value="standard">Portal 2 · 标准流程</option><option value="repetition">Portal 2 · 重复流程</option><option value="wrong-order">Portal 2 · 错序流程</option><option value="custom" disabled>自定义流程</option></select></label>
-      <label>玩家画像<select id="profile"><option value="balanced">综合型玩家</option><option value="casual">休闲型玩家</option><option value="expert">挑战型玩家</option><option value="custom" disabled>自定义画像</option></select></label>
-      <label>分析时元 / 秒<input id="unit" type="number" min="1" max="300" step="any" value="5"></label>
-      <div class="control-actions"><button id="baseline">设为对比基线</button><button id="clear-baseline" hidden>清除基线</button><button id="add-event" class="primary">＋ 添加事件</button></div>
+      <label>当前规则<select id="rules"></select></label>
+      <label>当前用户类型<select id="profile"></select></label>
+      <label>分析精度<input id="unit" type="number" min="1" max="300" step="any" value="5"><small>每隔多少秒采样一次</small></label>
+      <div class="control-actions"><label class="button">导入规则<input id="import-rules" type="file" accept=".json,application/json" hidden></label><label class="button">导入玩家类型<input id="import-profile" type="file" accept=".json,application/json" hidden></label><button id="run-analysis" class="primary">开始分析</button></div>
     </section>
+    <p id="analysis-state" class="caption" role="status"></p>
     <p id="status" role="status" aria-live="polite"></p>
-    <section class="stats" aria-label="分析摘要">
-      <div class="panel stat"><span>平均参与意愿</span><strong id="average">—</strong><small id="delta">按时长加权 · 0–10</small></div>
-      <div class="panel stat"><span>最低参与意愿</span><strong id="minimum">—</strong><small>定位局部体验低谷</small></div>
-      <div class="panel stat"><span>流程长度</span><strong id="duration">—</strong><small id="event-count">—</small></div>
-      <div class="panel stat"><span>诊断候选</span><strong id="diagnosis-count">—</strong><small>结合设计意图与试玩验证</small></div>
-    </section>
-    <div class="workspace">
-      <div class="analysis-column">
-        <section class="panel chart-panel"><div class="section-head"><div><p class="eyebrow">EXPERIENCE CURVES</p><h2>体验随时间的变化</h2></div><span id="baseline-label" class="tag" hidden>虚线：对比基线</span></div><div id="legend" class="legend"></div><div id="chart"></div><p class="caption">参与意愿、唤醒、效价、疲劳：0–10。横轴使用真实秒数；瞬时变化在粗采样下可能被平滑。</p></section>
-        <section class="panel"><div class="section-head"><div><p class="eyebrow">EVENT TIMELINE</p><h2>事件时间轴</h2></div><span class="caption">点击事件编辑 · 区间可重叠</span></div><div id="timeline"></div><div class="table-wrap"><table><thead><tr><th>事件</th><th>类型</th><th>开始 / 秒</th><th>持续 / 秒</th><th>操作</th></tr></thead><tbody id="events"></tbody></table></div></section>
-        <section class="panel"><div class="section-head"><div><p class="eyebrow">EVIDENCE & HYPOTHESES</p><h2>诊断与修改假设</h2></div></div><div id="diagnostics"></div></section>
-      </div>
-      <aside>
-        <section class="panel editor"><div class="section-head"><div><p class="eyebrow">EVENT INSPECTOR</p><h2 id="editor-title">编辑事件</h2></div></div>
+    <section id="timeline-editor" class="panel timeline-editor">
+      <div class="section-head"><div><p class="eyebrow">TIMELINE & EVENT EDITOR</p><h2>时间轴－事件编辑器</h2></div><span class="caption">点击格子新增 · 拖动事件调整时间 · 右键管理</span></div>
+      <div class="timeline-actions"><label>载入示例<select id="scenario"><option value="standard">Portal 2 · 标准流程</option><option value="repetition">Portal 2 · 重复流程</option><option value="wrong-order">Portal 2 · 错序流程</option><option value="custom" disabled>自定义流程</option></select></label><label class="span-setting">时间轴范围 / 秒<input id="timeline-span" type="number" min="1" max="7200" step="any" value="300"></label><button id="baseline">设为对比基线</button><button id="clear-baseline" hidden>清除基线</button><button id="add-event" class="primary">＋ 新事件</button></div>
+      <div class="timeline-with-library"><div class="timeline-main"><div id="timeline" class="timeline-scroll" tabindex="0" aria-label="时间轴点阵，可横向滚动"></div><p class="caption">每个点对应一个时元格子；纵向分层用于排列重叠事件。移动事件按时元吸附，不改变持续时间。</p>
+        <section class="event-inspector"><div class="section-head"><div><p class="eyebrow">EVENT INSPECTOR</p><h2 id="editor-title">编辑事件</h2></div></div>
           <form id="event-form">
             <label>事件名称<input name="name" required maxlength="200"></label>
             <label>事件类型<select name="type" id="event-type"></select></label>
@@ -34,15 +36,31 @@
             <div class="form-grid" id="attributes"></div>
             <label>教学机制<input name="mechanic" maxlength="200" placeholder="例如 portal；留空表示不教学"></label>
             <label>所需前置机制<input name="requires" maxlength="200" placeholder="例如 portal；留空表示无前置要求"></label>
-            <button class="primary full" type="submit">保存事件并重新分析</button>
+            <div class="event-save-actions"><button id="save-event" class="primary" type="submit">保存事件</button><button id="save-preset" type="button">保存为预设</button><button id="delete-preset" type="button" hidden>删除预设</button></div>
             <p id="form-error" class="error" role="alert"></p>
           </form>
         </section>
-        <section class="panel config"><div class="section-head"><div><p class="eyebrow">RULES & PLAYER</p><h2>模型配置</h2></div></div><p id="rule-name"></p><p class="caption">规则与玩家画像独立保存。导入 JSON 后重新计算；不会执行文件中的代码。</p><div class="button-grid"><label class="button">导入规则<input id="import-rules" type="file" accept=".json,application/json" hidden></label><button id="export-rules">导出规则</button><label class="button">导入画像<input id="import-profile" type="file" accept=".json,application/json" hidden></label><button id="export-profile">导出画像</button></div><button id="default-rules" class="full">恢复默认规则</button><details><summary>当前画像参数</summary><pre id="profile-info"></pre></details><details><summary>模型如何计算？</summary><p class="caption">事件影响支持瞬时、持续、累积、延迟和恢复五类函数。内部按 1 秒及事件边界更新状态，再按分析时元采样。规则中的参数尚未通过玩家实测校准。</p></details></section>
-      </aside>
+      <details class="event-table"><summary>事件明细</summary><div class="table-wrap"><table><thead><tr><th>事件</th><th>类型</th><th>开始 / 秒</th><th>持续 / 秒</th><th>操作</th></tr></thead><tbody id="events"></tbody></table></div></details></div>
+      <aside class="preset-library"><div class="section-head"><h3>预设事件库</h3><button id="new-preset">＋ 新建</button></div><p class="caption">长按预设约半秒，拖到时间轴格子快速添加。点击预设可在下方编辑器管理。</p><div id="preset-list"></div></aside></div>
+    </section>
+    <section class="stats" aria-label="分析摘要">
+      <div class="panel stat"><span>平均参与意愿</span><strong id="average">—</strong><small id="delta">按时长加权 · 0–10</small></div>
+      <div class="panel stat"><span>最低参与意愿</span><strong id="minimum">—</strong><small>定位局部体验低谷</small></div>
+      <div class="panel stat"><span>流程长度</span><strong id="duration">—</strong><small id="event-count">—</small></div>
+      <div class="panel stat"><span>诊断候选</span><strong id="diagnosis-count">—</strong><small>结合设计意图与试玩验证</small></div>
+    </section>
+    <div class="workspace results-workspace">
+      <div class="analysis-column">
+        <section class="panel chart-panel"><div class="section-head"><div><p class="eyebrow">EXPERIENCE CURVES</p><h2>体验随时间的变化</h2></div><span id="baseline-label" class="tag" hidden>虚线：对比基线</span></div><div id="legend" class="legend"></div><div id="chart"></div><p class="caption">参与意愿、唤醒、效价、疲劳：0–10。横轴使用真实秒数；瞬时变化在粗采样下可能被平滑。</p></section>
+
+        <section class="panel"><div class="section-head"><div><p class="eyebrow">EVIDENCE & HYPOTHESES</p><h2>诊断与修改假设</h2></div></div><div id="diagnostics"></div></section>
+      </div>
     </div>
     <footer>shot / LDtools <span>记录事件 → 模拟状态 → 追溯诊断 → 验证设计假设</span><span id="storage-status">项目自动保存在此浏览器</span></footer>
   </main>
+  </div>
+  <dialog id="library-editor" class="library-editor"><div class="section-head"><h2 id="library-editor-title">规则编辑器</h2><button id="close-library-editor" aria-label="关闭编辑器">✕</button></div><label>选择编辑对象<select id="library-entry"></select></label><p class="caption">编辑并另存为新条目。保存后可在任意会话的配置区选择，不会覆盖已有会话。此编辑器使用 JSON 格式。</p><label>配置内容<textarea id="library-json" spellcheck="false" aria-label="配置 JSON"></textarea></label><p id="library-error" class="error" role="alert"></p><div class="editor-actions"><button id="library-save" class="primary">保存为新条目</button><button id="library-export">导出 JSON</button></div></dialog>
+  <div id="event-context-menu" class="event-context-menu" role="menu" hidden><button role="menuitem" data-context="copy">复制事件</button><button role="menuitem" data-context="preset">保存为预设</button><button role="menuitem" data-context="delete">删除事件</button></div>
   <script type="module" src="/app.js"></script>
 </body>
 </html>
