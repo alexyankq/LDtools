@@ -5,7 +5,7 @@ const $ = id => document.getElementById(id);
 const STORAGE = 'ldtools-shot-v1';
 const SESSION_STORAGE = 'ldtools-shot-sessions-v1';
 let project = { version: 1, events: scenario(), rules: clone(DEFAULT_RULES), profile: clone(PROFILES.balanced), unit: 5 };
-let selected = project.events[0].id, baseline = null, scenarioName = 'standard', profileName = 'balanced', analysis = null, analyzedProject = null;
+let selected = project.events[0].id, baseline = null, profileName = 'balanced', analysis = null, analyzedProject = null;
 let sessions = [], activeSessionId;
 const sessionRuntime = new Map();
 let ruleLibrary = [{ id: 'default', data: clone(DEFAULT_RULES) }];
@@ -51,11 +51,11 @@ try {
     sessions = restored.sessions;
     activeSessionId = ids.has(restored.activeSessionId) ? restored.activeSessionId : sessions[0].id;
     project = clone(sessions.find(s => s.id === activeSessionId).project);
-    selected = project.events[0]?.id; scenarioName = 'custom'; profileName = 'custom';
+    selected = project.events[0]?.id; profileName = 'custom';
   } else if (saved) {
     const restored = clone(validateProject(JSON.parse(saved)));
     analyze(restored.events, restored.rules, restored.profile, restored.unit);
-    project = restored; selected = project.events[0]?.id; scenarioName = 'custom'; profileName = 'custom';
+    project = restored; selected = project.events[0]?.id; profileName = 'custom';
   }
 } catch { message('本地保存的数据无法读取，已使用示例。你可以导入项目 JSON 恢复。', true); }
 if (!sessions.length) {
@@ -95,7 +95,7 @@ function renderSessions() {
 function activateSession(id) {
   if (id === activeSessionId) return;
   save();
-  sessionRuntime.set(activeSessionId, { selected, baseline, scenarioName, profileName, analysis, analyzedProject });
+  sessionRuntime.set(activeSessionId, { selected, baseline, profileName, analysis, analyzedProject });
   activeSessionId = id;
   project = clone(sessions.find(s => s.id === id).project);
   eventDraft = null; editingPreset = null; hideContextMenu();
@@ -103,7 +103,7 @@ function activateSession(id) {
   selected = runtime?.selected ?? project.events[0]?.id;
   baseline = runtime?.baseline ?? null;
   analysis = runtime?.analysis ?? null; analyzedProject = runtime?.analyzedProject ?? null;
-  scenarioName = runtime?.scenarioName ?? 'custom'; profileName = runtime?.profileName ?? 'custom';
+  profileName = runtime?.profileName ?? 'custom';
   render(); message('已切换分析会话。');
 }
 function setSidebar(open) {
@@ -149,6 +149,7 @@ function register(library, data) {
   return entry.id;
 }
 function render() {
+  const scroll = { x: window.scrollX, y: window.scrollY, config: $('floating-config').scrollTop };
   $('average').textContent = analysis ? analysis.summary.average.toFixed(2) : '—';
   $('minimum').textContent = analysis ? analysis.summary.minimum.toFixed(2) : '—';
   $('duration').textContent = `${format(projectDuration() / 60)} 分`;
@@ -167,9 +168,13 @@ function render() {
   for (const [id, library, value] of [['rules', ruleLibrary, ruleId], ['profile', profileLibrary, profileId]]) {
     $(id).innerHTML = library.map(e => `<option value="${esc(e.id)}">${esc(e.data.name)}</option>`).join(''); $(id).value = value;
   }
-  $('scenario').value = scenarioName; $('unit').value = project.unit;
+  $('unit').value = project.unit;
   $('timeline-span').value = gridGeometry(project).span;
   renderChart(); renderEvents(); renderDiagnostics(); fillEditor(); renderPresets(); save(); renderSessions();
+  // Replacing result sections can trigger browser scroll anchoring. Preserve the
+  // current viewport both synchronously and after the next layout pass.
+  window.scrollTo(scroll.x, scroll.y); $('floating-config').scrollTop = scroll.config;
+  requestAnimationFrame(() => { window.scrollTo(scroll.x, scroll.y); });
 }
 function renderChart() {
   if (!analysis) { $('chart').innerHTML = '<p class="empty">点击「开始分析」生成体验曲线。</p>'; return; }
@@ -225,7 +230,6 @@ function apply(candidate, notice, custom = true) {
   // Compute first: a rejected import/edit cannot corrupt the current project.
   analyze(candidate.events, candidate.rules, candidate.profile, candidate.unit);
   project = clone(candidate);
-  if (custom) scenarioName = 'custom';
   render(); message(notice);
 }
 $('event-form').addEventListener('submit', event => {
@@ -260,18 +264,6 @@ document.addEventListener('click', event => {
     apply(candidate, '事件已删除。若要恢复，可导入之前导出的项目。');
   }
 });
-$('add-event').addEventListener('click', () => {
-  if (project.events.length >= 300) { message('最多支持 300 个事件。', true); return; }
-  beginDraft({ start: Math.min(7200 - project.unit, Math.ceil(projectDuration() / project.unit) * project.unit), lane: 0 });
-});
-$('scenario').addEventListener('change', event => {
-  // Preserve edits: downloading before replacing provides a portable recovery path.
-  if (scenarioName === 'custom') download('shot-before-example.json', project);
-  scenarioName = event.target.value;
-  const candidate = clone(project); candidate.events = scenario(scenarioName); selected = candidate.events[0].id;
-  eventDraft = null; editingPreset = null;
-  apply(candidate, '已载入假想示例流程。自定义流程如被替换，已自动导出备份。', false);
-});
 $('profile').addEventListener('change', event => {
   profileName = event.target.value;
   const candidate = clone(project); candidate.profile = clone(profileLibrary.find(e => e.id === profileName).data); apply(candidate, '当前用户类型已设置，点击「开始分析」运行。', false);
@@ -290,6 +282,16 @@ $('run-analysis').addEventListener('click', () => {
   try { analysis = analyze(project.events, project.rules, project.profile, project.unit); analyzedProject = JSON.stringify(project); render(); message('当前会话分析完成。'); }
   catch (error) { message(error.message, true); }
 });
+function setConfigOpen(open) {
+  document.body.classList.toggle('config-collapsed', !open);
+  $('floating-config').inert = !open;
+  $('config-toggle').setAttribute('aria-expanded', String(open));
+  $('config-toggle').textContent = open ? '隐藏配置' : '会话配置';
+}
+$('config-toggle').addEventListener('click', () => setConfigOpen($('config-toggle').getAttribute('aria-expanded') !== 'true'));
+const narrowConfig = window.matchMedia('(max-width: 760px)');
+narrowConfig.addEventListener('change', event => setConfigOpen(!event.matches));
+setConfigOpen(!narrowConfig.matches);
 function download(name, value) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' }));
   const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);

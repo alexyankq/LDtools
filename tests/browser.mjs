@@ -23,6 +23,12 @@ try {
     await page.locator(id).setInputFiles({ name: 'input.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(data)) });
     await page.waitForFunction(id => document.querySelector(id).value === '', id);
   };
+  const addEvent = async () => {
+    await page.locator('#timeline').scrollIntoViewIfNeeded();
+    await page.locator('#timeline').evaluate(e => { e.scrollLeft = 0; e.scrollTop = 0; });
+    const bounds = await page.locator('#time-grid').boundingBox();
+    await page.mouse.click(bounds.x + 26, bounds.y + 154);
+  };
   await page.goto(url);
   assert.equal(await page.title(), '我的第一次分析 · shot');
   assert.equal(await page.locator('#events tr').count(), 7);
@@ -32,6 +38,26 @@ try {
   assert.equal(await page.locator('#export-rules, #export-profile').count(), 0);
   assert.equal(await page.locator('#average').textContent(), '—');
   await run(); const initial = await page.locator('#average').textContent();
+  assert.equal(await page.locator('.timeline-actions, #scenario, #add-event').count(), 0);
+  const settled = async () => page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  const keepPosition = async operation => {
+    await page.evaluate(() => window.scrollTo(0, 800)); await settled();
+    const before = await page.evaluate(() => window.scrollY);
+    await operation(); await settled();
+    assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - before) <= 2, 'Configuration actions preserve viewport');
+    const config = await page.locator('#floating-config').boundingBox();
+    assert.ok(config.y >= 0 && config.y < 50, 'Configuration remains fixed in viewport');
+  };
+  await keepPosition(() => page.locator('#profile').selectOption('expert'));
+  await keepPosition(() => importJSON('#import-rules', DEFAULT_RULES));
+  await keepPosition(() => importJSON('#import-profile', PROFILES.balanced));
+  await keepPosition(() => page.locator('#rules').selectOption('default'));
+  await keepPosition(async () => { await page.locator('#unit').fill('10'); await page.locator('#unit').dispatchEvent('change'); });
+  await keepPosition(run);
+  await mkdir(root + 'artifacts', { recursive: true });
+  await page.locator('.chart-panel').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: root + 'artifacts/shot-floating-config.png' });
+
   await page.locator('#unit').fill('30'); await page.locator('#unit').dispatchEvent('change');
   assert.match(await page.locator('#analysis-state').textContent(), /上次结果/);
   assert.ok(await page.locator('#baseline').isDisabled());
@@ -42,7 +68,7 @@ try {
   assert.equal(await page.locator('#average').textContent(), initial);
   await run(); assert.notEqual(await page.locator('#average').textContent(), initial);
   assert.ok(await page.locator('#baseline-label').isVisible());
-  await page.locator('#add-event').click(); await page.locator('[name="name"]').fill('<script>shot-test</script>');
+  await addEvent(); await page.locator('[name="name"]').fill('<script>shot-test</script>');
   await page.locator('[name="start"]').fill('1120.5'); await page.locator('[name="duration"]').fill('60');
   await page.locator('#event-form button[type="submit"]').click();
   assert.equal(await page.locator('.event-name').last().textContent(), '<script>shot-test</script>');
@@ -78,7 +104,7 @@ try {
   const second = await page.locator('.session-item.active').getAttribute('data-session');
   // Imported options are reusable, while selection and results remain per session.
   await page.locator('#rules').selectOption({ label: rules.name });
-  await page.locator('#add-event').click(); await page.locator('[name="name"]').fill('B 的独立事件');
+  await addEvent(); await page.locator('[name="name"]').fill('B 的独立事件');
   await page.locator('#event-form button[type="submit"]').click();
   await page.locator('#unit').fill('30'); await page.locator('#unit').dispatchEvent('change');
   await page.locator('#profile').selectOption('casual'); await run();
@@ -122,6 +148,14 @@ try {
   await page.setViewportSize({ width: 390, height: 844 }); await page.locator('#sidebar-toggle').click();
   await page.locator(`[data-session="${second}"]`).click();
   assert.ok(await page.locator('#sidebar-backdrop').isHidden());
+  assert.ok(await page.locator('#floating-config').isHidden());
+  await page.evaluate(() => window.scrollTo(0, 300)); await settled();
+  const mobileScroll = await page.evaluate(() => window.scrollY);
+  await page.locator('#config-toggle').click();
+  assert.ok(await page.locator('#floating-config').isVisible());
+  await page.locator('#profile').selectOption('casual'); await settled();
+  assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - mobileScroll) <= 2);
+  await page.locator('#config-toggle').click();
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false);
   await page.screenshot({ path: root + 'artifacts/shot-mobile.png', fullPage: true });
   assert.deepEqual(errors, []);

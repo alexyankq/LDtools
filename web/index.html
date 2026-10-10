@@ -15,18 +15,12 @@
   <header><div class="session-header"><button id="sidebar-toggle" class="sidebar-toggle" aria-label="切换会话侧栏" aria-controls="session-sidebar" aria-expanded="true">☰</button><input id="session-title" aria-label="当前分析名称" maxlength="80" placeholder="未命名分析"></div><div class="header-right"><span class="tag">实验原型 · v0.1</span><button id="export-project">导出当前分析</button><label class="button">导入到当前分析<input type="file" id="import-project" accept=".json,application/json" hidden></label></div></header>
   <main>
     <div class="intro"><div><p class="eyebrow">LEVEL EXPERIENCE / DIAGNOSTICS</p><h1>看见节奏，找到改变的起点。</h1><p>将事件转化为体验曲线，用可追溯的诊断检验关卡设计假设。</p></div><div class="notice">所有曲线均为实验模型预测。<br>示例事件为假想流程，非玩家实测。</div></div>
-    <section class="controls panel" aria-label="分析设置">
-      <label>当前规则<select id="rules"></select></label>
-      <label>当前用户类型<select id="profile"></select></label>
-      <label>分析精度<input id="unit" type="number" min="1" max="300" step="any" value="5"><small>每隔多少秒采样一次</small></label>
-      <div class="control-actions"><label class="button">导入规则<input id="import-rules" type="file" accept=".json,application/json" hidden></label><label class="button">导入玩家类型<input id="import-profile" type="file" accept=".json,application/json" hidden></label><button id="run-analysis" class="primary">开始分析</button></div>
-    </section>
     <p id="analysis-state" class="caption" role="status"></p>
     <p id="status" role="status" aria-live="polite"></p>
     <section id="timeline-editor" class="panel timeline-editor">
       <div class="section-head"><div><p class="eyebrow">TIMELINE & EVENT EDITOR</p><h2>时间轴－事件编辑器</h2></div><span class="caption">点击格子新增 · 拖动事件调整时间 · 右键管理</span></div>
-      <div class="timeline-actions"><label>载入示例<select id="scenario"><option value="standard">Portal 2 · 标准流程</option><option value="repetition">Portal 2 · 重复流程</option><option value="wrong-order">Portal 2 · 错序流程</option><option value="custom" disabled>自定义流程</option></select></label><label class="span-setting">时间轴范围 / 秒<input id="timeline-span" type="number" min="1" max="7200" step="any" value="300"></label><button id="baseline">设为对比基线</button><button id="clear-baseline" hidden>清除基线</button><button id="add-event" class="primary">＋ 新事件</button></div>
-      <div class="timeline-with-library"><div class="timeline-main"><div id="timeline" class="timeline-scroll" tabindex="0" aria-label="时间轴点阵，可横向滚动"></div><p class="caption">每个点对应一个时元格子；纵向分层用于排列重叠事件。移动事件按时元吸附，不改变持续时间。</p>
+
+      <div class="timeline-with-library"><div class="timeline-main"><div id="timeline" class="timeline-scroll" tabindex="0" aria-label="时间轴点阵，可横向滚动"></div><div class="timeline-range"><label>时间轴总长度 / 秒<input id="timeline-span" type="number" min="1" max="7200" step="any" value="300"></label></div><p class="caption">每个点对应一个时元格子；纵向分层用于排列重叠事件。移动事件按时元吸附，不改变持续时间。</p>
         <section class="event-inspector"><div class="section-head"><div><p class="eyebrow">EVENT INSPECTOR</p><h2 id="editor-title">编辑事件</h2></div></div>
           <form id="event-form">
             <label>事件名称<input name="name" required maxlength="200"></label>
@@ -51,7 +45,7 @@
     </section>
     <div class="workspace results-workspace">
       <div class="analysis-column">
-        <section class="panel chart-panel"><div class="section-head"><div><p class="eyebrow">EXPERIENCE CURVES</p><h2>体验随时间的变化</h2></div><span id="baseline-label" class="tag" hidden>虚线：对比基线</span></div><div id="legend" class="legend"></div><div id="chart"></div><p class="caption">参与意愿、唤醒、效价、疲劳：0–10。横轴使用真实秒数；瞬时变化在粗采样下可能被平滑。</p></section>
+        <section class="panel chart-panel"><div class="comparison-actions"><button id="baseline">设为对比基线</button><button id="clear-baseline" hidden>清除基线</button></div><div class="section-head"><div><p class="eyebrow">EXPERIENCE CURVES</p><h2>体验随时间的变化</h2></div><span id="baseline-label" class="tag" hidden>虚线：对比基线</span></div><div id="legend" class="legend"></div><div id="chart"></div><p class="caption">参与意愿、唤醒、效价、疲劳：0–10。横轴使用真实秒数；瞬时变化在粗采样下可能被平滑。</p></section>
 
         <section class="panel"><div class="section-head"><div><p class="eyebrow">EVIDENCE & HYPOTHESES</p><h2>诊断与修改假设</h2></div></div><div id="diagnostics"></div></section>
       </div>
@@ -59,6 +53,14 @@
     <footer>shot / LDtools <span>记录事件 → 模拟状态 → 追溯诊断 → 验证设计假设</span><span id="storage-status">项目自动保存在此浏览器</span></footer>
   </main>
   </div>
+    <section id="floating-config" class="controls panel floating-config" aria-label="当前会话配置">
+      <div class="section-head"><h2>会话配置</h2></div>
+      <label>当前规则<select id="rules"></select></label>
+      <label>当前用户类型<select id="profile"></select></label>
+      <label>分析精度<input id="unit" type="number" min="1" max="300" step="any" value="5"><small>每隔多少秒采样一次</small></label>
+      <div class="control-actions"><label class="button">导入规则<input id="import-rules" type="file" accept=".json,application/json" hidden></label><label class="button">导入玩家类型<input id="import-profile" type="file" accept=".json,application/json" hidden></label><button id="run-analysis" class="primary">开始分析</button></div>
+    </section>
+  <button id="config-toggle" class="config-toggle" aria-controls="floating-config" aria-expanded="true">隐藏配置</button>
   <dialog id="library-editor" class="library-editor"><div class="section-head"><h2 id="library-editor-title">规则编辑器</h2><button id="close-library-editor" aria-label="关闭编辑器">✕</button></div><label>选择编辑对象<select id="library-entry"></select></label><p class="caption">编辑并另存为新条目。保存后可在任意会话的配置区选择，不会覆盖已有会话。此编辑器使用 JSON 格式。</p><label>配置内容<textarea id="library-json" spellcheck="false" aria-label="配置 JSON"></textarea></label><p id="library-error" class="error" role="alert"></p><div class="editor-actions"><button id="library-save" class="primary">保存为新条目</button><button id="library-export">导出 JSON</button></div></dialog>
   <div id="event-context-menu" class="event-context-menu" role="menu" hidden><button role="menuitem" data-context="copy">复制事件</button><button role="menuitem" data-context="preset">保存为预设</button><button role="menuitem" data-context="delete">删除事件</button></div>
   <script type="module" src="/app.js"></script>
