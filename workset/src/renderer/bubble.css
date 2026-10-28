@@ -1,0 +1,8 @@
+html,body { margin: 0; width: 64px; height: 64px; overflow: hidden; background: transparent; user-select: none; }
+body { display: grid; place-items: center; }
+button { display: grid; place-items: center; width: 54px; height: 54px; padding: 0; border: 1px solid #698c75; border-radius: 50%; background: #294d3c; color: #fff; box-shadow: 0 2px 5px #102c382e; cursor: pointer; touch-action: none; }
+button:hover { background: #346248; border-color: #95b69a; }
+button:focus-visible { outline: 2px solid #b9dba2; outline-offset: 2px; }
+button > span { font: 700 38px 'Segoe UI',sans-serif; letter-spacing: -5px; padding: 0 5px 7px 0; }
+button > span > span { color: #b7d78e; }
+button.dragging { cursor: grabbing; }

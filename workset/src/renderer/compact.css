@@ -1,0 +1,57 @@
+/* Shared tab labels always wrap: a tooltip is not a substitute for the name. */
+.group-row { display: flex; align-items: center; gap: 2px; margin-bottom: 4px; }
+.group-row .group-button { flex: 1; min-width: 0; width: auto; margin-bottom: 0; }
+.group-button .name { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.6; }
+.group-button .number { flex-shrink: 0; }
+.group-delete { color: #a88a80; width: 24px; }
+.group-delete:hover { color: #a65043; background: #f0e2dd; }
+.delete-group { color: #a9776b; font-size: 10px; gap: 4px; padding: 5px 7px; border-radius: 5px; }
+.delete-group svg { width: 13px; height: 13px; }
+.delete-group:hover { background: #f4e9e3; color: #a15041; }
+.title-row { flex-wrap: wrap; }
+h1 { white-space: normal; overflow-wrap: anywhere; }
+.group-pagination { display: flex; align-items: center; justify-content: center; gap: 9px; color: #8e9e85; font-size: 10px; }
+.group-pagination button { width: 29px; height: 25px; background: #e3ebdd; border-radius: 5px; font-size: 19px; }
+
+/* Traditional tabs rotated onto the left edge, with up to three layers. */
+body.compact .titlebar { height: 36px; padding-left: 12px; }
+body.compact .brand { gap: 7px; }
+body.compact .brand > span:last-child { display: none; }
+body.compact .brand::after { content: '工作集'; font-size: 11px; font-weight: 500; color: #7b8a75; letter-spacing: 1px; }
+body.compact .brand-mark { width: 22px; height: 22px; border-radius: 6px; font-size: 19px; }
+body.compact #pin, body.compact #maximize, body.compact #close, body.compact .window-separator { display: none; }
+body.compact .tool-button { font-size: 10px; padding: 5px 8px; }
+body.compact .window-button { width: 34px; }
+body.compact .app-layout { height: calc(100vh - 36px); flex-direction: row; }
+body.compact .sidebar { width: auto; min-width: 0; min-height: 0; padding: 12px 0 12px 5px; flex-direction: column; align-items: stretch; gap: 8px; border-right: 1px solid #c6d3c0; border-bottom: 0; background: #edf1e8; overflow: visible; }
+body.compact .workspace-label, body.compact .sidebar-heading, body.compact .sidebar-bottom, body.compact .new-group, body.compact .sidebar::after { display: none; }
+body.compact #groups { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-end; gap: 0; min-height: 0; max-height: none; overflow: visible; width: auto; flex: 0 0 auto; }
+body.compact .side-tab-column { display: flex; flex-direction: column; gap: 1px; flex-shrink: 0; }
+body.compact .group-row { display: block; flex-shrink: 0; margin: 0; }
+body.compact .group-button { position: relative; display: block; width: 100%; max-width: none; min-width: 0; min-height: 0; padding: 0; margin: 0; white-space: normal; font-size: 12px; border: 1px solid #c6d3c0; border-right: 0; border-radius: 7px 0 0 7px; background: #e1e8da; color: #7b8b70; box-shadow: inset -3px 0 5px #687b5010; }
+body.compact .group-button:hover { background: #e9efdf; }
+body.compact .group-button.active { z-index: 2; width: calc(100% + 1px); background: #fafbf9; color: #315a34; box-shadow: none; font-weight: 600; }
+body.compact .group-button.active::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 2px; border-radius: 2px; background: #699359; }
+body.compact .group-button .name { position: absolute; left: 50%; top: 50%; width: calc(var(--side-tab-height, 120px) - 20px); transform: translate(-50%, -50%) rotate(-90deg); white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; word-break: break-all; line-height: 17px; font-weight: inherit; text-align: center; }
+body.compact .group-button svg, body.compact .group-button .number { display: none; }
+body.compact .group-pagination { flex-shrink: 0; gap: 2px; font-size: 9px; }
+body.compact .group-pagination button { width: 20px; height: 23px; font-size: 17px; }
+body.compact main { padding: 12px; min-height: 0; }
+body.compact .page-heading { margin-bottom: 10px; align-items: flex-start; gap: 7px; flex-shrink: 0; }
+body.compact .heading-copy { flex: 1; }
+body.compact .title-row { margin: 0; }
+body.compact h1 { font-size: 13px !important; line-height: 1.7; letter-spacing: 0; overflow: visible; white-space: normal; }
+body.compact .page-heading > .button { padding: 7px 9px; min-height: 30px; font-size: 10px; }
+body.compact #open-count { display: none; }
+body.compact .breadcrumb, body.compact .eyebrow, body.compact .heading-copy > p, body.compact #group-count, body.compact #edit-group, body.compact #delete-group,
+body.compact .controls, body.compact .filter-row, body.compact .main-footer, body.compact .drop-hint, body.compact .empty-state, body.compact .no-results { display: none !important; }
+body.compact .cards { display: flex; flex-direction: column; gap: 6px; }
+body.compact .compact-card { border-radius: 7px; flex-shrink: 0; }
+body.compact .compact-open { width: 100%; min-height: 46px; gap: 9px; padding: 9px; text-align: left; justify-content: flex-start; }
+body.compact .file-icon { width: 28px; height: 30px; border-radius: 5px; }
+body.compact .file-icon svg { width: 16px; height: 16px; }
+body.compact .compact-file-name { flex: 1; min-width: 0; font-size: 12px; white-space: normal; overflow-wrap: anywhere; line-height: 1.6; }
+body.compact .compact-open-icon { color: #92a189; }
+body.compact .compact-open-icon svg { width: 13px; height: 13px; }
+body.compact .compact-empty { color: #98a48d; font-size: 12px; line-height: 1.9; text-align: center; padding: 30px 10px; }
+body.compact .toast { bottom: 12px; font-size: 11px; padding: 8px 12px; max-width: calc(100vw - 24px); }

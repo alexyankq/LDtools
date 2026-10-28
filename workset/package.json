@@ -1,0 +1,28 @@
+{
+  "name": "ldtools-workset",
+  "productName": "工作集 Workset",
+  "version": "0.2.1",
+  "private": true,
+  "description": "按工作事项组织文档和脚本的置顶桌面工具",
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/store.test.cjs tests/actions.test.cjs tests/side-tabs.test.cjs",
+    "test:desktop": "node tests/desktop.cjs",
+    "test:pin": "node tests/pin.desktop.cjs",
+    "test:compact": "node tests/compact.desktop.cjs",
+    "build": "node scripts/build.cjs",
+    "package:win": "node scripts/package-win.cjs"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "devDependencies": {
+    "electron": "45.0.0",
+    "playwright": "1.64.0",
+    "yazl": "3.3.1"
+  },
+  "dependencies": {
+    "koffi": "3.3.4"
+  }
+}

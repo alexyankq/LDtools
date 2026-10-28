@@ -63,3 +63,12 @@ npm run test:browser
 左侧会话的「⋯」菜单支持重命名、置顶、归档、删除及移动到项目。置顶会话集中在列表顶部；项目支持新建、重命名、折叠和组内新建会话。归档列表支持取消归档与删除。删除会话会同时删除其中所有方案并要求确认；删除项目只移除分组，保留会话。当前会话被归档或删除后自动切换到其他未归档会话；若没有则新建空白会话。分组、置顶和归档状态保存在当前浏览器。
 
 开发接手请先阅读 [shot 开发交接](docs/shot-handoff.md)，确认当前工作区、main 与下载包的版本差异。
+
+
+## Workset 工作集
+
+Windows 桌面效率工具，按工作事项集中管理表格、文档、文件夹、链接和脚本。支持窗口置顶、精简启动面板、旋转 90° 的侧边页签和可拖动悬浮气泡。
+
+- [Windows x64 下载与版本说明](https://github.com/alexyankq/LDtools/releases/tag/workset-v0.2.1)：下载 ZIP，完整解压后运行 Workset.exe，无需安装 Node.js。
+- [源码与使用说明](workset/README.md)
+- [构建和发布指引](workset/docs/releasing.md)

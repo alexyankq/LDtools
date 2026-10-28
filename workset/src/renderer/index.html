@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>工作集 Workset</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="compact.css">
+  <script src="side-tabs.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="titlebar">
+    <div class="brand"><span class="brand-mark">w<span>·</span></span><span>workset<span class="brand-divider">/</span><span class="brand-cn">工作集</span></span></div>
+    <div class="window-tools">
+      <button id="pin" class="tool-button" title="让工作集始终显示在其他窗口上方" aria-pressed="false"><span data-icon="pin"></span><span id="pin-label">窗口置顶</span></button>
+      <button id="compact" class="tool-button" title="切换精简窗口" aria-pressed="false"><span data-icon="compact"></span><span id="compact-label">精简</span></button>
+      <span class="window-separator"></span>
+      <button id="minimize" class="window-button" title="收起为悬浮气泡" aria-label="收起为悬浮气泡"><span data-icon="minus"></span></button>
+      <button id="maximize" class="window-button" title="最大化 / 还原" aria-label="最大化或还原"><span data-icon="square"></span></button>
+      <button id="close" class="window-button close-button" title="关闭" aria-label="关闭"><span data-icon="close"></span></button>
+    </div>
+  </header>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="workspace-label"><span class="workspace-dot"></span>个人工作空间<span class="local-badge">本地</span></div>
+      <div class="sidebar-heading"><span>我的工作集</span><button id="new-group-icon" class="icon-button" title="新建工作集" aria-label="新建工作集"><span data-icon="plus"></span></button></div>
+      <nav id="groups" aria-label="工作集分组"></nav>
+      <div id="group-pagination" class="group-pagination" hidden><button id="groups-prev" title="上一页" aria-label="工作集上一页">‹</button><span id="groups-page"></span><button id="groups-next" title="下一页" aria-label="工作集下一页">›</button></div>
+      <button id="new-group" class="new-group"><span data-icon="plus"></span>新建工作集</button>
+      <div class="sidebar-bottom">
+        <div class="sidebar-tip"><span data-icon="layers"></span><strong>为每项工作，留一个入口。</strong><p>把相关文件放在一起，<br>下一次开始，就少找一会儿。</p></div>
+        <div class="backup-tools"><button id="import" title="从 JSON 备份恢复工作集"><span data-icon="import"></span>导入</button><button id="export" title="导出全部工作集为 JSON 备份"><span data-icon="export"></span>导出</button></div>
+        <div class="local-status"><span></span>自动保存于本机<button id="data-info" class="icon-button" title="查看数据保存位置" aria-label="查看数据保存位置"><span data-icon="info"></span></button></div>
+      </div>
+    </aside>
+    <main id="main">
+      <div class="breadcrumb"><span>工作空间</span><span>/</span><span id="breadcrumb-name"></span></div>
+      <section class="page-heading">
+        <div class="heading-copy"><div class="eyebrow">YOUR EVERYDAY, ORGANIZED</div><div class="title-row"><h1 id="group-name"></h1><span id="group-count" class="count-badge">0</span><button id="edit-group" class="icon-button" title="编辑工作集" aria-label="编辑工作集"><span data-icon="edit"></span></button><button id="delete-group" class="delete-group" title="删除当前工作集"><span data-icon="trash"></span>删除工作集</button></div><p id="group-description"></p></div>
+        <button id="open-all" class="button button-dark"><span data-icon="open"></span>一键打开<span id="open-count" class="button-count">0</span></button>
+      </section>
+      <section class="controls">
+        <div class="search-wrap"><span data-icon="search"></span><input id="search" placeholder="搜索名称、路径或备注…" aria-label="搜索快捷方式" autocomplete="off"><kbd>Ctrl K</kbd></div>
+        <div class="add-wrap"><button id="add-toggle" class="button button-green" aria-expanded="false"><span data-icon="plus"></span>添加快捷方式<span data-icon="chevron"></span></button><div id="add-menu" class="dropdown" hidden>
+          <button id="add-files"><span data-icon="file"></span><span>文档 / 脚本<small>选择一个或多个文件</small></span></button>
+          <button id="add-folder"><span data-icon="folder"></span><span>文件夹<small>快速打开工作目录</small></span></button>
+          <button id="add-manual"><span data-icon="link"></span><span>网址 / 手动路径<small>添加在线文档或本地路径</small></span></button>
+        </div></div>
+      </section>
+      <div class="filter-row"><div id="filters" role="group" aria-label="按类型筛选"><button data-filter="all" class="active">全部</button><button data-filter="sheet">表格</button><button data-filter="document">文档</button><button data-filter="script">脚本</button><button data-filter="link">链接</button><button data-filter="file">其他</button></div><span id="result-count"></span></div>
+      <section id="cards" class="cards" aria-label="快捷方式"></section>
+      <section id="empty" class="empty-state" hidden>
+        <div class="empty-art"><span class="empty-sheet" data-icon="sheet"></span><span class="empty-file" data-icon="file"></span><span class="empty-plus" data-icon="plus"></span></div>
+        <span class="empty-kicker">从一个文件开始</span><h2 id="empty-title">这项工作需要什么？</h2><p id="empty-description">把常用的表格、文档和脚本收进来。<br>需要的时候，随手就能打开。</p>
+        <button id="empty-add" class="button button-green"><span data-icon="plus"></span>添加第一批文件</button><span class="empty-drag">也可以直接将文件拖到这里</span>
+      </section>
+      <p id="compact-empty" class="compact-empty" hidden>暂无快捷方式，请在完整模式下添加。</p>
+      <section id="no-results" class="no-results" hidden><span data-icon="search"></span><h2>没有找到匹配的快捷方式</h2><p>试试其他关键词，或切换文件类型。</p><button id="clear-search" class="button button-light">清除筛选</button></section>
+      <div id="drop-hint" class="drop-hint" hidden><span data-icon="import"></span>拖入文件，添加到当前工作集<span class="hint-separator">·</span>快捷方式不会移动原文件</div>
+      <footer class="main-footer"><span><span class="footer-dot"></span>所有文件，各在原处。所有入口，尽在此处。</span><span id="total-count">0 个工作集</span></footer>
+    </main>
+  </div>
+  <div id="drop-overlay" class="drop-overlay" hidden><span data-icon="import"></span><h2>松开，加入当前工作集</h2><p>支持一次添加多个文件或文件夹</p></div>
+  <dialog id="editor"><form id="editor-form"><div class="dialog-heading"><span id="dialog-kicker" class="eyebrow">WORKSET</span><button type="button" id="dialog-close" class="icon-button" aria-label="关闭编辑"><span data-icon="close"></span></button></div><h2 id="dialog-title"></h2><div id="dialog-fields"></div><p id="dialog-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" id="dialog-delete" class="button button-danger" hidden>删除工作集</button><span class="spacer"></span><button type="button" id="dialog-cancel" class="button button-light">取消</button><button type="submit" class="button button-green" id="dialog-save">保存</button></div></form></dialog>
+  <dialog id="confirm"><form method="dialog"><div class="dialog-heading"><span class="eyebrow">请确认</span></div><h2 id="confirm-title"></h2><p id="confirm-text"></p><div class="dialog-actions"><button value="cancel" class="button button-light" autofocus>取消</button><button value="ok" class="button button-dark">确认</button></div></form></dialog>
+  <dialog id="message"><div class="eyebrow">WORKSET</div><h2 id="message-title"></h2><p id="message-text"></p><form method="dialog" class="dialog-actions"><button class="button button-green">知道了</button></form></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
